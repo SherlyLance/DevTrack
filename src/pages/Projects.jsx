@@ -80,64 +80,70 @@ const Projects = () => {
       </div>
 
       {/* Search, Filter, and Sort Bar */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* Search Box */}
+          <div className="flex-1 min-w-[200px]">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border-2 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-accent-[#3b82f6] focus:border-accent-[#3b82f6] sm:text-sm"
-            />
           </div>
 
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-accent-[#3b82f6] focus:border-accent-[#3b82f6] sm:text-sm rounded-md"
-          >
-            <option value="All">Status Filter</option>
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
-          </select>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+            >
+              <option value="All">Status: All</option>
+              <option value="To Do">Status: To Do</option>
+              <option value="In Progress">Status: In Progress</option>
+              <option value="Done">Status: Done</option>
+            </select>
 
-          <select
-            value={filterAssignee}
-            onChange={(e) => setFilterAssignee(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-accent-[#3b82f6] focus:border-accent-[#3b82f6] sm:text-sm rounded-md"
-          >
-            <option value="All">Assignee Filter</option>
-            {uniqueAssignees.map(assignee => (
-              <option key={assignee} value={assignee}>{assignee}</option>
-            ))}
-          </select>
+            <select
+              value={filterAssignee}
+              onChange={(e) => setFilterAssignee(e.target.value)}
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+            >
+              <option value="All">Assignee: All</option>
+              {uniqueAssignees.map(assignee => (
+                <option key={assignee} value={assignee}>Assignee: {assignee}</option>
+              ))}
+            </select>
 
-          <select
-            value={filterCreatedAt}
-            onChange={(e) => setFilterCreatedAt(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-accent-[#3b82f6] focus:border-accent-[#3b82f6] sm:text-sm rounded-md"
-          >
-            <option value="All">Date Created Filter</option>
-            <option value="last-month">Last Month</option>
-            <option value="last-3-months">Last 3 Months</option>
-            <option value="last-year">Last Year</option>
-          </select>
+            <select
+              value={filterCreatedAt}
+              onChange={(e) => setFilterCreatedAt(e.target.value)}
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+            >
+              <option value="All">Date: All Time</option>
+              <option value="last-month">Date: Last Month</option>
+              <option value="last-3-months">Date: Last 3 Months</option>
+              <option value="last-year">Date: Last Year</option>
+            </select>
 
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-accent-[#3b82f6] focus:border-accent-[#3b82f6] sm:text-sm rounded-md"
-          >
-            <option value="newest">Sort By (Date Created)</option>
-            <option value="oldest">Sort By (Oldest First)</option>
-            <option value="alpha">Sort By (Name A-Z)</option>
-            <option value="total-issues">Sort By (Total Issues)</option>
-          </select>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+            >
+              <option value="newest">Sort: Newest</option>
+              <option value="oldest">Sort: Oldest</option>
+              <option value="alpha">Sort: Name A-Z</option>
+              <option value="total-issues">Sort: Total Issues</option>
+            </select>
+          </div>
         </div>
       </div>
 
