@@ -2,38 +2,52 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useProjects } from '../context/ProjectsContext';
 
 const Projects = () => {
+  const { projects: allProjects } = useProjects();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('newest'); // 'newest', 'oldest', 'alpha', 'total-issues'
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterAssignee, setFilterAssignee] = useState('All');
   const [filterCreatedAt, setFilterCreatedAt] = useState('All'); // 'All', 'last-month', 'last-3-months', 'last-year'
 
-  const projects = [
-    { id: 1, title: 'DevTrack Backend', description: 'Backend API for the bug tracker', status: 'In Progress', members: ['Alice', 'Bob', 'Charlie'], createdAt: '2023-01-15', totalIssues: 50, bugs: 10, features: 20, tasks: 20, todo: 15, inProgress: 20, done: 15 },
-    { id: 2, title: 'DevTrack Frontend', description: 'Frontend UI for the bug tracker', status: 'To Do', members: ['Charlie', 'David', 'Alice'], createdAt: '2023-02-01', totalIssues: 40, bugs: 5, features: 15, tasks: 20, todo: 10, inProgress: 15, done: 15 },
-    { id: 3, title: 'Mobile App Integration', description: 'Integrate with mobile application', status: 'Done', members: ['Eve', 'Bob'], createdAt: '2023-03-10', totalIssues: 30, bugs: 2, features: 10, tasks: 18, todo: 0, inProgress: 0, done: 30 },
-    { id: 4, title: 'Database Optimization', description: 'Optimize database queries for performance', status: 'In Progress', members: ['Alice'], createdAt: '2023-04-05', totalIssues: 25, bugs: 3, features: 10, tasks: 12, todo: 5, inProgress: 10, done: 10 },
-    { id: 5, title: 'User Authentication Module', description: 'Develop and integrate user authentication', status: 'To Do', members: ['David'], createdAt: '2023-04-20', totalIssues: 35, bugs: 8, features: 15, tasks: 12, todo: 15, inProgress: 10, done: 10 },
-  ];
-
   const uniqueAssignees = useMemo(() => {
     const assignees = new Set();
-    projects.forEach(project => {
-      project.members.forEach(member => assignees.add(member));
+    allProjects.forEach(project => {
+      // Ensure project and project.members exist before iterating
+      if (project && project.members) {
+        // Add member.id to the set for unique assignees
+        project.members.forEach(member => assignees.add(member.id));
+      }
     });
-    return Array.from(assignees).sort();
-  }, [projects]);
+    // Map the IDs back to the full user objects from a central list (e.g., mockUsers in CreateProjectPage)
+    // For this example, we'll construct mock user objects if not found directly.
+    const uniqueIds = Array.from(assignees);
+    return uniqueIds.map(id => {
+      // Find the user object by ID from a master list (e.g., the mockUsers from CreateProjectPage)
+      // This is a simplified approach. In a real app, you'd fetch a list of all users.
+      // For now, let's assume the member objects we put in `allProjects` are the source.
+      // We need to flatten `allProjects` members to find the full user object.
+      const foundMember = allProjects.flatMap(p => p.members).find(m => m.id === id);
+      return foundMember || { id, name: `Unknown User ${id}` }; // Fallback for safety
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  }, [allProjects]);
 
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = projects.filter(project => {
-      const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            project.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = filterStatus === 'All' || project.status === filterStatus;
-      const matchesAssignee = filterAssignee === 'All' || project.members.includes(filterAssignee);
+    let filtered = allProjects.filter(project => {
+      // Add defensive checks for project.title and project.description
+      const projectTitle = project?.title || '';
+      const projectDescription = project?.description || '';
 
-      const projectDate = new Date(project.createdAt);
+      const matchesSearch = projectTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            projectDescription.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = filterStatus === 'All' || project?.status === filterStatus;
+      // Correctly check if the project has the filtered assignee by ID
+      const matchesAssignee = filterAssignee === 'All' || (project?.members && project.members.some(member => member.id === filterAssignee));
+
+      const projectDate = new Date(project?.createdAt);
       const now = new Date();
       let matchesCreatedAt = true;
       if (filterCreatedAt === 'last-month') {
@@ -52,20 +66,24 @@ const Projects = () => {
 
     // Sorting
     filtered.sort((a, b) => {
+      // Add defensive checks for a.title and b.title
+      const aTitle = a?.title || '';
+      const bTitle = b?.title || '';
+
       if (sortOrder === 'newest') {
-        return new Date(b.createdAt) - new Date(a.createdAt);
+        return new Date(b?.createdAt) - new Date(a?.createdAt);
       } else if (sortOrder === 'oldest') {
-        return new Date(a.createdAt) - new Date(b.createdAt);
+        return new Date(a?.createdAt) - new Date(b?.createdAt);
       } else if (sortOrder === 'alpha') {
-        return a.title.localeCompare(b.title);
+        return aTitle.localeCompare(bTitle);
       } else if (sortOrder === 'total-issues') {
-        return b.totalIssues - a.totalIssues;
+        return (b?.totalIssues || 0) - (a?.totalIssues || 0);
       }
       return 0;
     });
 
     return filtered;
-  }, [projects, searchTerm, sortOrder, filterStatus, filterAssignee, filterCreatedAt]);
+  }, [allProjects, searchTerm, sortOrder, filterStatus, filterAssignee, filterCreatedAt]);
 
   return (
     <div className="container mx-auto px-6 py-8 bg-[#f9fafb]">
@@ -81,9 +99,9 @@ const Projects = () => {
 
       {/* Search, Filter, and Sort Bar */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-        <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
           {/* Search Box */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -99,49 +117,49 @@ const Projects = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap flex-nowrap gap-4 justify-end">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
             >
-              <option value="All">Status: All</option>
-              <option value="To Do">Status: To Do</option>
-              <option value="In Progress">Status: In Progress</option>
-              <option value="Done">Status: Done</option>
+              <option value="All">Status</option>
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Done">Done</option>
             </select>
 
             <select
               value={filterAssignee}
               onChange={(e) => setFilterAssignee(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
             >
-              <option value="All">Assignee: All</option>
+              <option value="All">Assignee</option>
               {uniqueAssignees.map(assignee => (
-                <option key={assignee} value={assignee}>Assignee: {assignee}</option>
+                <option key={assignee.id} value={assignee.id}>{assignee.name}</option>
               ))}
             </select>
 
             <select
               value={filterCreatedAt}
               onChange={(e) => setFilterCreatedAt(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
             >
-              <option value="All">Date: All Time</option>
-              <option value="last-month">Date: Last Month</option>
-              <option value="last-3-months">Date: Last 3 Months</option>
-              <option value="last-year">Date: Last Year</option>
+              <option value="All">Date</option>
+              <option value="last-month">Last Month</option>
+              <option value="last-3-months">Last 3 Months</option>
+              <option value="last-year">Last Year</option>
             </select>
 
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white"
+              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
             >
-              <option value="newest">Sort: Newest</option>
-              <option value="oldest">Sort: Oldest</option>
-              <option value="alpha">Sort: Name A-Z</option>
-              <option value="total-issues">Sort: Total Issues</option>
+              <option value="newest">Sort</option>
+              <option value="oldest">Oldest First</option>
+              <option value="alpha">Name (A-Z)</option>
+              <option value="total-issues">Total Issues</option>
             </select>
           </div>
         </div>

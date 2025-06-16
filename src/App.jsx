@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { IssuesProvider } from './context/IssuesContext';
+import { ProjectsProvider } from './context/ProjectsContext';
 import MainLayout from './layouts/MainLayout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -28,8 +29,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes inside MainLayout */}
-          <Route element={<MainLayout />}>
+          {/* Protected Routes inside MainLayout, wrapped by ProjectsProvider */}
+          <Route element={<ProjectsProvider><MainLayout /></ProjectsProvider>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
