@@ -1,65 +1,77 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios'; // Import axios
 // import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
 // import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+const API_URL = 'http://localhost:5000/api/auth'; // Your backend API base URL for authentication
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+
+        if (token && storedUser) {
+          // Optionally, verify token with backend or decode it for immediate user info
+          // For now, trust the stored user if token exists
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error("Failed to initialize authentication from local storage:", error);
+        // Clear any corrupted data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const register = async (userData) => {
     try {
-      // Store user data in localStorage
-      const userToStore = {
-        id: Date.now().toString(), // Generate a unique ID
-        name: userData.name,
-        email: userData.email,
-        role: userData.role || 'Team Member' // Use provided role or default to 'Team Member'
-      };
-      localStorage.setItem('user', JSON.stringify(userToStore));
-      setUser(userToStore);
-      return { success: true, user: userToStore };
+      const response = await axios.post(`${API_URL}/register`, userData);
+      const { token, user: registeredUser } = response.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(registeredUser));
+      setUser(registeredUser);
+
+      return { success: true, user: registeredUser };
     } catch (error) {
-      console.error('Registration error:', error);
-      return { success: false, error: 'Registration failed' };
+      console.error('Registration error:', error.response?.data?.message || error.message);
+      return { success: false, error: error.response?.data?.message || 'Registration failed' };
     }
   };
 
-  const login = async (credentials) => {
+  const login = async (email, password) => {
     try {
-      // Check if user exists in localStorage
-      const storedUser = localStorage.getItem('user');
-      if (!storedUser) {
-        return { success: false, error: 'Please register first' };
-      }
+      const response = await axios.post(`${API_URL}/login`, { email, password });
+      const { token, user: loggedInUser } = response.data;
 
-      // Any credentials are valid after registration
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      localStorage.setItem('isAuthenticated', 'true');
-      return { success: true, user: userData };
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
+
+      return { success: true, user: loggedInUser };
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: 'Login failed' };
+      console.error('Login error:', error.response?.data?.message || error.message);
+      return { success: false, error: error.response?.data?.message || 'Login failed' };
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('isAuthenticated');
     setUser(null);
   };
 
@@ -69,7 +81,7 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
   return (

@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { IssuesProvider } from './context/IssuesContext';
 import { ProjectsProvider } from './context/ProjectsContext';
+import { SocketProvider } from './context/SocketContext';
 import MainLayout from './layouts/MainLayout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -22,24 +23,26 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ToastContainer />
-        <Routes>
-          {/* Public Routes outside MainLayout */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <SocketProvider>
+          <ToastContainer />
+          <Routes>
+            {/* Public Routes outside MainLayout */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes inside MainLayout, wrapped by ProjectsProvider */}
-          <Route element={<ProjectsProvider><MainLayout /></ProjectsProvider>}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:id" element={<ProjectDetails />} />
-            <Route path="/create-project" element={<CreateProjectPage />} />
-            <Route path="/issues" element={<IssuesProvider><Issues /></IssuesProvider>} />
-            <Route path="/create-issue" element={<IssuesProvider><CreateIssuePage /></IssuesProvider>} />
-            <Route path="/reports" element={<IssuesProvider><Reports /></IssuesProvider>} />
-          </Route>
-        </Routes>
+            {/* Protected Routes inside MainLayout, wrapped by ProjectsProvider */}
+            <Route element={<ProjectsProvider><MainLayout /></ProjectsProvider>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetails />} />
+              <Route path="/create-project" element={<CreateProjectPage />} />
+              <Route path="/issues" element={<IssuesProvider><Issues /></IssuesProvider>} />
+              <Route path="/create-issue" element={<IssuesProvider><CreateIssuePage /></IssuesProvider>} />
+              <Route path="/reports" element={<IssuesProvider><Reports /></IssuesProvider>} />
+            </Route>
+          </Routes>
+        </SocketProvider>
       </AuthProvider>
     </Router>
   );
