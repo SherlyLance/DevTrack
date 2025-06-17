@@ -3,75 +3,78 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 // import axios from 'axios';
 // import jwt_decode from 'jwt-decode';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    return storedAuth ? JSON.parse(storedAuth) : false;
-  });
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('isAuthenticated', JSON.stringify(isAuthenticated));
-  }, [isAuthenticated]);
+    // Check if user is stored in localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
+  }, []);
 
-  const login = async (email, password) => {
-    setLoading(true);
+  const register = async (userData) => {
     try {
-      // Hardcoded credentials for testing purposes
-      if (email === 'test@example.com' && password === 'password') {
-        setIsAuthenticated(true);
-        setUser({ email: email, name: 'Test User' });
-        console.log('Login successful');
-        return true; // Indicate successful login
-      } else {
-        console.log('Login failed: Invalid credentials');
-        return false; // Indicate failed login
-      }
+      // Store user data in localStorage
+      const userToStore = {
+        id: Date.now().toString(), // Generate a unique ID
+        name: userData.name,
+        email: userData.email,
+        role: userData.role || 'Team Member' // Use provided role or default to 'Team Member'
+      };
+      localStorage.setItem('user', JSON.stringify(userToStore));
+      setUser(userToStore);
+      return { success: true, user: userToStore };
     } catch (error) {
-      console.error('Login error:', error);
-      return false; // Indicate failed login due to error
-    } finally {
-      setLoading(false);
+      console.error('Registration error:', error);
+      return { success: false, error: 'Registration failed' };
     }
   };
 
-  const register = async (userData) => {
-    // Simulate API call for registration
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Registering user:', userData);
-        resolve({ success: true });
-      }, 500);
-    });
+  const login = async (credentials) => {
+    try {
+      // Check if user exists in localStorage
+      const storedUser = localStorage.getItem('user');
+      if (!storedUser) {
+        return { success: false, error: 'Please register first' };
+      }
+
+      // Any credentials are valid after registration
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+      localStorage.setItem('isAuthenticated', 'true');
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Login failed' };
+    }
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('user');
-    console.log('Logged out');
-    // Removed automatic navigation, Login/App will handle it
+    localStorage.removeItem('isAuthenticated');
+    setUser(null);
   };
 
   const value = {
-    isAuthenticated,
     user,
-    login,
-    register,
-    logout,
     loading,
+    register,
+    login,
+    logout,
+    isAuthenticated: !!user
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };
