@@ -1,12 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { PlusIcon, ChartBarIcon, ListBulletIcon } from '@heroicons/react/24/outline';
+// import { PlusIcon, ChartBarIcon, ListBulletIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const Dashboard = () => {
+  const { user } = useAuth();
   // Placeholder Data
   const projects = [
     { id: 1, name: 'DevTrack Backend', totalTickets: 50, bugs: 10, features: 20, tasks: 20, todo: 15, inProgress: 20, done: 15, members: 5, lastUpdated: '2023-04-20 10:00' },
@@ -79,26 +81,6 @@ const Dashboard = () => {
           chartColors.medium,
           chartColors.low,
         ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const weeklyProgressData = {
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-    datasets: [
-      {
-        label: 'Tickets Created',
-        data: [10, 15, 12, 18],
-        backgroundColor: chartColors.toDo,
-        borderColor: chartColors.toDo,
-        borderWidth: 1,
-      },
-      {
-        label: 'Tickets Closed',
-        data: [8, 12, 10, 15],
-        backgroundColor: chartColors.done,
-        borderColor: chartColors.done,
         borderWidth: 1,
       },
     ],

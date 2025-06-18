@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 // import { Link } from 'react-router-dom'; // Removed as no longer needed for static UI
 // import KanbanBoard from '../components/KanbanBoard'; // Removed as we're building the layout directly
 import { useIssues } from '../context/IssuesContext'; // Re-enabled for issue data
 import {
-  HomeIcon,
   FolderIcon,
   ClipboardDocumentListIcon,
   PlusIcon,
