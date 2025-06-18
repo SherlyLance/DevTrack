@@ -1,39 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useProjects } from '../context/ProjectsContext';
 
 const Projects = () => {
   const { projects: allProjects } = useProjects();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest', 'oldest', 'alpha', 'total-issues'
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [filterAssignee, setFilterAssignee] = useState('All');
-  const [filterCreatedAt, setFilterCreatedAt] = useState('All'); // 'All', 'last-month', 'last-3-months', 'last-year'
-
-  const uniqueAssignees = useMemo(() => {
-    const assignees = new Set();
-    allProjects.forEach(project => {
-      // Ensure project and project.members exist before iterating
-      if (project && project.members) {
-        // Add member.id to the set for unique assignees
-        project.members.forEach(member => assignees.add(member.id));
-      }
-    });
-    // Map the IDs back to the full user objects from a central list (e.g., mockUsers in CreateProjectPage)
-    // For this example, we'll construct mock user objects if not found directly.
-    const uniqueIds = Array.from(assignees);
-    return uniqueIds.map(id => {
-      // Find the user object by ID from a master list (e.g., the mockUsers from CreateProjectPage)
-      // This is a simplified approach. In a real app, you'd fetch a list of all users.
-      // For now, let's assume the member objects we put in `allProjects` are the source.
-      // We need to flatten `allProjects` members to find the full user object.
-      const foundMember = allProjects.flatMap(p => p.members).find(m => m.id === id);
-      return foundMember || { id, name: `Unknown User ${id}` }; // Fallback for safety
-    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-  }, [allProjects]);
 
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = allProjects.filter(project => {

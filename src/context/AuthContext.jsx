@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
 // import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();

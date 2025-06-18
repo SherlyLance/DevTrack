@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { UsersIcon, BugAntIcon, Cog6ToothIcon, CheckCircleIcon, ClockIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, ClockIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
 
 const ProjectCard = ({ project }) => {
   const getStatusColor = (status) => {

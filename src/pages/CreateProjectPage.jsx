@@ -77,8 +77,6 @@ const CreateProjectPage = () => {
   };
 
   const handleRemoveMember = (memberId) => {
-    const removedMember = projectMembers.find(member => member.id === memberId);
-    setProjectMembers(projectMembers.filter(member => member.id !== memberId));
     // toast.info(`${removedMember.name} removed from the project.`); // Toast now handled by context if we were to send this there
   };
 
