@@ -17,7 +17,7 @@ import Issues from './pages/Issues';
 import CreateProjectPage from './pages/CreateProjectPage';
 import CreateIssuePage from './pages/CreateIssuePage';
 import Reports from './pages/Reports';
-// import './App.css'; // This was causing some issues, let's keep it commented for now
+// import './App.css'; // This was causing some issues
 
 function App() {
   return (

@@ -91,84 +91,19 @@ const Projects = () => {
         <h3 className="text-gray-700 text-3xl font-medium">Projects</h3>
         <Link
           to="/create-project"
-          className="px-4 py-2 bg-accent-[#3b82f6] text-white rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700"
         >
           Create New Project
         </Link>
       </div>
-
-      {/* Search, Filter, and Sort Bar */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
-          {/* Search Box */}
-          <div className="flex-1">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border-2 border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
-              />
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap flex-nowrap gap-4 justify-end">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
-            >
-              <option value="All">Status</option>
-              <option value="To Do">To Do</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Done">Done</option>
-            </select>
-
-            <select
-              value={filterAssignee}
-              onChange={(e) => setFilterAssignee(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
-            >
-              <option value="All">Assignee</option>
-              {uniqueAssignees.map(assignee => (
-                <option key={assignee.id} value={assignee.id}>{assignee.name}</option>
-              ))}
-            </select>
-
-            <select
-              value={filterCreatedAt}
-              onChange={(e) => setFilterCreatedAt(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
-            >
-              <option value="All">Date</option>
-              <option value="last-month">Last Month</option>
-              <option value="last-3-months">Last 3 Months</option>
-              <option value="last-year">Last Year</option>
-            </select>
-
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white w-auto flex-grow"
-            >
-              <option value="newest">Sort</option>
-              <option value="oldest">Oldest First</option>
-              <option value="alpha">Name (A-Z)</option>
-              <option value="total-issues">Total Issues</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAndSortedProjects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
+        {filteredAndSortedProjects.length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 py-8">No projects found.</div>
+        ) : (
+          filteredAndSortedProjects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))
+        )}
       </div>
     </div>
   );

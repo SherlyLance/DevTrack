@@ -44,7 +44,7 @@ const MainLayout = () => {
 
       <div className={`flex-1 flex flex-col ${isAuthenticated ? 'ml-64' : ''}`}>
         {/* Top Navigation Bar for content area */}
-        <nav className="bg-white h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        <nav className="bg-white h-16 flex items-center justify-between px-6">
           {/* Welcome Message */}
           <div className="flex-1">
             {isAuthenticated && currentUser && (

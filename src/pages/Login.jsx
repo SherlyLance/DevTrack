@@ -88,7 +88,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-2 sm:px-4 lg:px-8">
       {/* Background Blur */}
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -100,14 +100,14 @@ const Login = () => {
       ></div>
 
       {/* Login Card */}
-      <div className="relative z-10 max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-200">
+      <div className="relative z-10 w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-md bg-white p-4 sm:p-8 md:p-10 rounded-xl shadow-lg border border-gray-200 mx-2">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">
             {isLogin ? 'Sign in to your account' : 'Create a new account'}
           </h2>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={formik.handleSubmit}>
+        <form className="mt-6 sm:mt-8 space-y-4" onSubmit={formik.handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             {!isLogin && (
               <div className="mb-4">
@@ -245,7 +245,7 @@ const Login = () => {
             </button>
           </div>
 
-          <div className="text-sm text-center">
+          <div className="text-sm text-center mt-2">
             <button
               type="button"
               className="font-medium text-blue-600 hover:text-blue-500"

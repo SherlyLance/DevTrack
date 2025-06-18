@@ -105,26 +105,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8 bg-[#f9fafb]">
-      <h3 className="text-[#111827] text-3xl font-medium mb-8">Dashboard Overview</h3>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-        <Link to="/create-project" className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center text-accent-[#3b82f6] hover:bg-gray-50 transition duration-300">
-          <PlusIcon className="h-6 w-6 mr-2" />
-          <span className="text-lg font-medium">Create Project</span>
-        </Link>
-        <Link
-          to="/issues"
-          className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center text-accent-[#3b82f6] hover:bg-gray-50 transition duration-300"
-        >
-          <ListBulletIcon className="h-6 w-6 mr-2" />
-          <span className="text-lg font-medium">View All Issues</span>
-        </Link>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="p-4 sm:p-6 md:p-8 w-full max-w-7xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center sm:text-left">Dashboard</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h4 className="text-lg font-semibold text-[#111827] mb-2">Total Projects</h4>
           <p className="text-4xl font-bold text-purple-500">{totalProjects}</p>
@@ -142,9 +125,7 @@ const Dashboard = () => {
           <p className="text-4xl font-bold text-green-500">{assignedToMe}</p>
         </div>
       </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h4 className="text-xl font-semibold text-[#111827] mb-4">Issue Distribution by Status</h4>
           <div className="h-64 flex items-center justify-center">
@@ -158,9 +139,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* My Tasks & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h4 className="text-xl font-semibold text-[#111827] mb-4">My Tasks</h4>
           <ul className="divide-y divide-gray-200">
@@ -173,8 +152,6 @@ const Dashboard = () => {
             ))}
           </ul>
         </div>
-
-        {/* Activity Feed */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h4 className="text-xl font-semibold text-[#111827] mb-4">Recent Activity</h4>
           <ul className="divide-y divide-gray-200">
