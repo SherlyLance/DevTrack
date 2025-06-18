@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 const SocketContext = createContext();
 
-const SOCKET_SERVER_URL = 'http://localhost:5000'; // Your backend URL where Socket.IO is running
+const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000'; // Use env variable for deployment
 
 export const useSocket = () => {
   return useContext(SocketContext);
