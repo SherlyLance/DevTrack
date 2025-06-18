@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'react-toastify';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);

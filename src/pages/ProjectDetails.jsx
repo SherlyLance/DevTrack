@@ -1,8 +1,8 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
-import { BugAntIcon, Cog6ToothIcon, CheckCircleIcon, UsersIcon, CalendarIcon, TrashIcon, ArrowUturnLeftIcon, PlusIcon, MegaphoneIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { Pie } from 'react-chartjs-2';
+import { Cog6ToothIcon, TrashIcon, ArrowUturnLeftIcon, PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 

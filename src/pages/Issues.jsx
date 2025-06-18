@@ -61,7 +61,6 @@ const Issues = () => {
     const matchesTags = tagsFilter === 'All' || (issue.tags && issue.tags.includes(tagsFilter));
 
     const issueCreatedAt = issue.createdAt ? new Date(issue.createdAt) : null;
-    const issueDueDate = issue.dueDate ? new Date(issue.dueDate) : null;
 
     const matchesStartDate = !startDateFilter || (issueCreatedAt && issueCreatedAt >= new Date(startDateFilter));
     const matchesEndDate = !endDateFilter || (issueCreatedAt && issueCreatedAt <= new Date(endDateFilter));
