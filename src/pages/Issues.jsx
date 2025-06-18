@@ -1,13 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 // import { Link } from 'react-router-dom'; // Removed as no longer needed for static UI
 // import KanbanBoard from '../components/KanbanBoard'; // Removed as we're building the layout directly
 import { useIssues } from '../context/IssuesContext'; // Re-enabled for issue data
-import {
-  FolderIcon,
-  ClipboardDocumentListIcon,
-  PlusIcon,
-  ChartBarIcon,
-} from '@heroicons/react/24/outline'; // Keeping for potential future filter icons, but commented out specific ones not in use
 
 const Issues = () => {
   const { issues } = useIssues(); // Get issues from context

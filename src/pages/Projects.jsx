@@ -5,11 +5,11 @@ import { useProjects } from '../context/ProjectsContext';
 
 const Projects = () => {
   const { projects: allProjects } = useProjects();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [filterAssignee, setFilterAssignee] = useState('All');
-  const [filterCreatedAt, setFilterCreatedAt] = useState('All');
+  const [searchTerm] = useState('');
+  const [sortOrder] = useState('newest');
+  const [filterStatus] = useState('All');
+  const [filterAssignee] = useState('All');
+  const [filterCreatedAt] = useState('All');
 
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = allProjects.filter(project => {

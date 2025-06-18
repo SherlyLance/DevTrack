@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Removed unused variable
   // Placeholder Data
   const projects = [
     { id: 1, name: 'DevTrack Backend', totalTickets: 50, bugs: 10, features: 20, tasks: 20, todo: 15, inProgress: 20, done: 15, members: 5, lastUpdated: '2023-04-20 10:00' },
