@@ -136,8 +136,8 @@ DevTrack/
    ```
 
 6. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
+   - Frontend: devtrack-project-management.netlify.app
+   - Backend: https://devtrack-backend-7xxu.onrender.com
 
 ## 📱 Available Scripts
 
