@@ -8,7 +8,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL = 'http://localhost:5000/api/auth'; // Your backend API base URL for authentication
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/auth'; // Use env variable for deployment
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
