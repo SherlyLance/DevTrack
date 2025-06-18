@@ -1,13 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
 import { toast } from 'react-toastify';
+import { API_URL } from '../config/api'; // Import API configuration
 // import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/auth'; // Use env variable for deployment
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

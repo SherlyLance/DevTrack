@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import { SOCKET_URL } from '../config/api'; // Import API configuration
 
 const SocketContext = createContext();
-
-const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000'; // Use env variable for deployment
 
 export const useSocket = () => {
   return useContext(SocketContext);
@@ -13,7 +12,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_SERVER_URL);
+    const newSocket = io(SOCKET_URL);
 
     newSocket.on('connect', () => {
       console.log('Connected to Socket.IO server!', newSocket.id);
