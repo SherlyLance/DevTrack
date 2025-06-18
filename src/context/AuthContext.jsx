@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
-// import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 // import jwt_decode from 'jwt-decode';
 
 const AuthContext = createContext();
@@ -73,6 +74,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    toast.success('Logout successful!');
   };
 
   const value = {
