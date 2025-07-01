@@ -136,8 +136,8 @@ DevTrack/
    ```
 
 6. **Access the application**
-   - Frontend: https://devtrack-project-management.netlify.app
-   - Backend: https://devtrack-backend-7xxu.onrender.com
+   - Frontend: https://dev-track-five.vercel.app/
+   - Backend: https://devtrack-backend-cspa.onrender.com
 
 ## 📱 Available Scripts
 
