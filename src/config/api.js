@@ -6,6 +6,9 @@ export const API_BASE_URL = isDevelopment
   ? 'http://localhost:5000' 
   :  process.env.REACT_APP_SOCKET_URL;
 
+console.log('API_BASE_URL in config (runtime):', API_BASE_URL);
+console.log('Value of process.env.REACT_APP_SOCKET_URL (runtime):', process.env.REACT_APP_SOCKET_URL);
+
 export const API_URL = `${API_BASE_URL}/api/auth`;
 export const SOCKET_URL = API_BASE_URL;
 
