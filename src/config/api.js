@@ -4,7 +4,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // Backend URLs
 export const API_BASE_URL = isDevelopment 
   ? 'http://localhost:5000' 
-  : 'https://devtrack-backend-cspa.onrender.com';
+  :  process.env.REACT_APP_SOCKET_URL;
 
 export const API_URL = `${API_BASE_URL}/api/auth`;
 export const SOCKET_URL = API_BASE_URL;

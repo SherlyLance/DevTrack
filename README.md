@@ -136,7 +136,7 @@ DevTrack/
    ```
 
 6. **Access the application**
-   - Frontend: https://dev-track-five.vercel.app/
+   - Frontend: https://dev-track-five.vercel.app
    - Backend: https://devtrack-backend-cspa.onrender.com
 ## 📱 Available Scripts
 
