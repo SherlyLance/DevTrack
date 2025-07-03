@@ -17,7 +17,7 @@ import Issues from './pages/Issues';
 import CreateProjectPage from './pages/CreateProjectPage';
 import CreateIssuePage from './pages/CreateIssuePage';
 import Reports from './pages/Reports';
-// import './App.css'; // This was causing some issues
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -38,8 +38,9 @@ function App() {
               <Route path="/projects/:id" element={<ProjectDetails />} />
               <Route path="/create-project" element={<CreateProjectPage />} />
               <Route path="/issues" element={<IssuesProvider><Issues /></IssuesProvider>} />
-              <Route path="/create-issue" element={<IssuesProvider><CreateIssuePage /></IssuesProvider>} />
-              <Route path="/reports" element={<IssuesProvider><Reports /></IssuesProvider>} />
+              <Route path="/create-issue" element={<CreateIssuePage />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} /> {/* Add this line */}
             </Route>
           </Routes>
         </SocketProvider>

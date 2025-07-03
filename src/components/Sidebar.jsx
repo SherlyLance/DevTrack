@@ -8,6 +8,7 @@ import {
   PlusIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
+import { CogIcon } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
   const { isAuthenticated } = useAuth();
@@ -23,6 +24,11 @@ const Sidebar = () => {
     { path: '/issues', label: 'Issues', icon: ClipboardDocumentListIcon },
     { path: '/create-project', label: 'Create Project', icon: PlusIcon },
     { path: '/reports', label: 'Reports', icon: ChartBarIcon },
+    {
+    name: 'Settings',
+    href: '/settings',
+    icon: CogIcon,
+  },
   ];
 
   if (!isAuthenticated) return null; // Sidebar only shows if authenticated
