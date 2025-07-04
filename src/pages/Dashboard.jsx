@@ -1,46 +1,74 @@
-import React from 'react';
-// import { Link } from 'react-router-dom';
+// src/pages/Dashboard.jsx
+import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-// import { PlusIcon, ChartBarIcon, ListBulletIcon } from '@heroicons/react/24/outline';
+import { useProjects } from '../context/ProjectsContext'; // Import useProjects
+import { useIssues } from '../context/IssuesContext'; // Assuming you have/will create IssuesContext
+import {
+  ProjectsIcon,
+  IssuesIcon,
+  CheckCircleIcon,
+  PlusIcon,
+  CreateProjectIcon,
+  ReportsIcon,
+  ListBulletIcon
+} from '../components/Icons'; // Import all necessary icons
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const Dashboard = () => {
-  // const { user } = useAuth(); // Removed unused variable
-  // Placeholder Data
-  const projects = [
-    { id: 1, name: 'DevTrack Backend', totalTickets: 50, bugs: 10, features: 20, tasks: 20, todo: 15, inProgress: 20, done: 15, members: 5, lastUpdated: '2023-04-20 10:00' },
-    { id: 2, name: 'DevTrack Frontend', totalTickets: 40, bugs: 5, features: 15, tasks: 20, todo: 10, inProgress: 15, done: 15, members: 3, lastUpdated: '2023-04-19 14:30' },
-  ];
+  const { projects, loading: projectsLoading, error: projectsError, fetchProjects } = useProjects();
+  // Assuming IssuesContext provides issues, loading, and error states
+  const { issues, loading: issuesLoading, error: issuesError, fetchIssues } = useIssues();
 
-  const recentActivities = [
-    { id: 1, description: 'Mrunal created a ticket: Login Bug', timestamp: '2 hours ago' },
-    { id: 2, description: 'Status changed to In Progress for #DEV-101', timestamp: '5 hours ago' },
-    { id: 3, description: 'Ravi was assigned a bug #DEV-102', timestamp: '1 day ago' },
-  ];
+  useEffect(() => {
+    // Fetch projects and issues when the component mounts or dependencies change
+    // The contexts themselves already handle initial fetching based on auth state,
+    // but explicit calls here ensure data is fresh when navigating to dashboard.
+    fetchProjects();
+    fetchIssues();
+  }, [fetchProjects, fetchIssues]);
 
-  const myTasks = [
-    { id: 1, title: 'Fix login validation', priority: 'High', status: 'To Do', dueDate: '2023-04-25' },
-    { id: 2, title: 'Refactor component styling', priority: 'Medium', status: 'In Progress', dueDate: '2023-04-28' },
-  ];
+  // Handle loading and error states
+  if (projectsLoading || issuesLoading) {
+    return (
+      <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen rounded-lg shadow-inner flex justify-center items-center">
+        <p className="text-xl text-gray-700">Loading dashboard data...</p>
+      </div>
+    );
+  }
 
-  // Aggregate data for overview
+  if (projectsError || issuesError) {
+    return (
+      <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen rounded-lg shadow-inner flex justify-center items-center text-red-600">
+        <p className="text-xl">Error loading data: {projectsError || issuesError}</p>
+      </div>
+    );
+  }
+
+  // Aggregate data from fetched projects and issues
   const totalProjects = projects.length;
-  const totalIssues = projects.reduce((sum, p) => sum + p.totalTickets, 0);
-  const todoIssues = projects.reduce((sum, p) => sum + p.todo, 0);
-  const inProgressIssues = projects.reduce((sum, p) => sum + p.inProgress, 0);
-  const doneIssues = projects.reduce((sum, p) => sum + p.done, 0);
-  const assignedToMe = myTasks.length;
+  const totalIssues = issues.length;
+  const todoIssuesCount = issues.filter(issue => issue.status === 'To Do').length;
+  const inProgressIssuesCount = issues.filter(issue => issue.status === 'In Progress').length;
+  const doneIssuesCount = issues.filter(issue => issue.status === 'Done').length;
+
+  // Placeholder for "My Assigned Tasks" - ideally this comes from a user-specific filter or endpoint
+  // For now, let's just count issues assigned to the current user (if user context provided user ID)
+  // Assuming 'issues' objects have an 'assignee' field that matches a user ID or name
+  // For this example, let's just count all 'To Do' and 'In Progress' issues as "assigned to me" for simplicity
+  const myAssignedTasksCount = todoIssuesCount + inProgressIssuesCount;
+
 
   // Chart Data Examples
   const chartColors = {
-    toDo: '#F87171',
-    inProgress: '#60A5FA',
-    done: '#4ADE80',
-    high: '#FB923C',
-    medium: '#A78BFA',
-    low: '#FCD34D',
+    toDo: '#F87171', // Red-400
+    inProgress: '#60A5FA', // Blue-400
+    done: '#4ADE80', // Green-400
+    high: '#FB923C', // Orange-400
+    medium: '#A78BFA', // Purple-400
+    low: '#FCD34D', // Yellow-400
   };
 
   const ticketStatusData = {
@@ -48,7 +76,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Tickets by Status',
-        data: [todoIssues, inProgressIssues, doneIssues],
+        data: [todoIssuesCount, inProgressIssuesCount, doneIssuesCount],
         backgroundColor: [
           chartColors.toDo,
           chartColors.inProgress,
@@ -63,13 +91,19 @@ const Dashboard = () => {
       },
     ],
   };
+
+  // For priority data, you'd need issue objects to have a 'priority' field
+  // For now, using a static placeholder for priority distribution as issues context is not yet detailed
+  const highPriorityIssues = issues.filter(issue => issue.priority === 'High').length;
+  const mediumPriorityIssues = issues.filter(issue => issue.priority === 'Medium').length;
+  const lowPriorityIssues = issues.filter(issue => issue.priority === 'Low').length;
 
   const ticketPriorityData = {
     labels: ['High', 'Medium', 'Low'],
     datasets: [
       {
         label: 'Tickets by Priority',
-        data: [20, 40, 30], // Placeholder, ideally calculated from actual issues
+        data: [highPriorityIssues, mediumPriorityIssues, lowPriorityIssues],
         backgroundColor: [
           chartColors.high,
           chartColors.medium,
@@ -85,69 +119,136 @@ const Dashboard = () => {
     ],
   };
 
+  // My Tasks (from issues assigned to current user, or just 'To Do'/'In Progress' for now)
+  const myTasks = issues.filter(issue => issue.status === 'To Do' || issue.status === 'In Progress'); // Simplified for now
+
+  // Recent Activity (This would ideally come from an activity log endpoint)
+  // For now, let's generate some mock activities based on fetched issues
+  const recentActivities = issues.slice(0, 5).map(issue => ({
+    id: issue._id, // Assuming _id from MongoDB
+    description: `Issue "${issue.title}" status changed to ${issue.status}.`,
+    timestamp: new Date(issue.updatedAt || issue.createdAt).toLocaleString(), // Use actual timestamps
+  }));
+
+
   return (
-    <div className="p-4 sm:p-6 md:p-8 w-full max-w-7xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center sm:text-left">Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h4 className="text-lg font-semibold text-[#111827] mb-2">Total Projects</h4>
-          <p className="text-4xl font-bold text-purple-500">{totalProjects}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h4 className="text-lg font-semibold text-[#111827] mb-2">Total Issues</h4>
-          <p className="text-4xl font-bold text-accent-[#3b82f6]">{totalIssues}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h4 className="text-lg font-semibold text-[#111827] mb-2">Open Issues</h4>
-          <p className="text-4xl font-bold text-amber-500">{todoIssues + inProgressIssues}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h4 className="text-lg font-semibold text-[#111827] mb-2">My Assigned Tasks</h4>
-          <p className="text-4xl font-bold text-green-500">{assignedToMe}</p>
+    <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen rounded-lg shadow-inner">
+      <h2 className="text-5xl font-extrabold text-gray-900 mb-8 pb-4 border-b-4 border-indigo-300">
+        Dashboard Overview
+      </h2>
+
+      {/* Quick Actions Section */}
+      <div className="mb-10">
+        <h3 className="text-2xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link to="/create-issue" className="flex items-center justify-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 border border-blue-200">
+            <PlusIcon className="mr-2 text-blue-500" />
+            <span className="text-lg font-medium text-gray-700">New Issue</span>
+          </Link>
+          <Link to="/create-project" className="flex items-center justify-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 border border-green-200">
+            <CreateProjectIcon className="mr-2 text-green-500" />
+            <span className="text-lg font-medium text-gray-700">New Project</span>
+          </Link>
+          <Link to="/reports" className="flex items-center justify-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 border border-purple-200">
+            <ReportsIcon className="mr-2 text-purple-500" />
+            <span className="text-lg font-medium text-gray-700">View Reports</span>
+          </Link>
+          <Link to="/issues" className="flex items-center justify-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 border border-yellow-200">
+            <ListBulletIcon className="mr-2 text-yellow-500" />
+            <span className="text-lg font-medium text-gray-700">My Tasks</span>
+          </Link>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h4 className="text-xl font-semibold text-[#111827] mb-4">Issue Distribution by Status</h4>
+
+      {/* Key Metrics Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 transform hover:scale-105 transition-transform duration-300">
+          <h3 className="text-xl font-semibold text-gray-700 mb-3 flex items-center">
+            <ProjectsIcon className="mr-2 text-indigo-500" /> Total Projects
+          </h3>
+          <p className="text-6xl font-bold text-indigo-700 animate-fade-in">{totalProjects}</p>
+          <p className="text-sm text-gray-500 mt-2">Currently active projects</p>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 transform hover:scale-105 transition-transform duration-300">
+          <h3 className="text-xl font-semibold text-gray-700 mb-3 flex items-center">
+            <IssuesIcon className="mr-2 text-red-500" /> Open Issues
+          </h3>
+          <p className="text-6xl font-bold text-red-600 animate-fade-in">{todoIssuesCount + inProgressIssuesCount}</p>
+          <p className="text-sm text-gray-500 mt-2">Issues awaiting resolution</p>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 transform hover:scale-105 transition-transform duration-300">
+          <h3 className="text-xl font-semibold text-gray-700 mb-3 flex items-center">
+            <CheckCircleIcon className="mr-2 text-green-500" />
+            Completed Tasks
+          </h3>
+          <p className="text-6xl font-bold text-green-700 animate-fade-in">{doneIssuesCount}</p>
+          <p className="text-sm text-gray-500 mt-2">Tasks completed overall</p>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+          <h4 className="text-xl font-semibold text-gray-700 mb-4">Issue Distribution by Status</h4>
           <div className="h-64 flex items-center justify-center">
-            <Pie data={ticketStatusData} options={{ maintainAspectRatio: false, responsive: true }} />
+            {totalIssues > 0 ? (
+              <Pie data={ticketStatusData} options={{ maintainAspectRatio: false, responsive: true }} />
+            ) : (
+              <p className="text-gray-400">No issues to display chart.</p>
+            )}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h4 className="text-xl font-semibold text-[#111827] mb-4">Issue Priority Breakdown</h4>
+          <h4 className="text-xl font-semibold text-gray-700 mb-4">Issue Priority Breakdown</h4>
           <div className="h-64 flex items-center justify-center">
-            <Bar data={ticketPriorityData} options={{ maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true } } }} />
+            {totalIssues > 0 ? (
+              <Bar data={ticketPriorityData} options={{ maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true } } }} />
+            ) : (
+              <p className="text-gray-400">No issues to display chart.</p>
+            )}
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h4 className="text-xl font-semibold text-[#111827] mb-4">My Tasks</h4>
-          <ul className="divide-y divide-gray-200">
-            {myTasks.map((task) => (
-              <li key={task.id} className="py-3">
+
+      {/* My Tasks */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h4 className="text-xl font-semibold text-gray-700 mb-4">My Tasks</h4>
+        <ul className="divide-y divide-gray-200">
+          {myTasks.length > 0 ? (
+            myTasks.map((task) => (
+              <li key={task._id} className="py-3">
                 <h5 className="text-lg font-medium text-gray-900">{task.title}</h5>
                 <p className="text-sm text-gray-600">Priority: {task.priority} | Status: {task.status}</p>
-                <span className="text-xs text-gray-500">Due: {task.dueDate}</span>
+                <span className="text-xs text-gray-500">Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}</span>
               </li>
-            ))}
-          </ul>
-        </div>
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h4 className="text-xl font-semibold text-[#111827] mb-4">Recent Activity</h4>
-          <ul className="divide-y divide-gray-200">
-            {recentActivities.map((activity) => (
-              <li key={activity.id} className="py-3">
-                <p className="text-gray-800">{activity.description}</p>
-                <span className="text-xs text-gray-500">{activity.timestamp}</span>
+            ))
+          ) : (
+            <p className="text-gray-500">No tasks assigned to you or in progress.</p>
+          )}
+        </ul>
+      </div>
+
+      {/* Recent Activity Feed */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">Recent Activity</h3>
+        <ul className="space-y-4">
+          {recentActivities.length > 0 ? (
+            recentActivities.map((activity) => (
+              <li key={activity.id} className="flex items-start text-gray-700">
+                <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-2 mr-3"></div>
+                <div>
+                  <p className="text-gray-800">{activity.description}</p>
+                  <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                </div>
               </li>
-            ))}
-          </ul>
-        </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No recent activity.</p>
+          )}
+        </ul>
       </div>
     </div>
   );
 };
 
 export default Dashboard;
-

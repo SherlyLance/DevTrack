@@ -1,8 +1,10 @@
+// src/pages/Register.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../context/AuthContext';
+// import { toast } from 'react-toastify'; // Removed as AuthContext handles toasts
 
 const Register = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const Register = () => {
       email: '',
       password: '',
       confirmPassword: '',
+      role: 'Team Member', // Default role for registration
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
@@ -24,13 +27,19 @@ const Register = () => {
       confirmPassword: Yup.string()
         .oneOf([Yup.ref('password'), null], 'Passwords must match')
         .required('Confirm password is required'),
+      role: Yup.string().required('Role is required'), // Ensure role is selected
     }),
     onSubmit: async (values) => {
       try {
-        await register(values);
-        navigate('/');
+        const result = await register(values);
+        if (result.success) {
+          navigate('/dashboard'); // Navigate to dashboard after successful registration and auto-login
+        }
+        // Error handling (toast messages) is managed by AuthContext
       } catch (error) {
-        console.error('Registration failed:', error);
+        // This catch block is for unexpected errors not handled by the context
+        console.error('Registration submission error:', error);
+        // toast.error('An unexpected error occurred during registration.'); // Toast already handled by AuthContext
       }
     },
   });
@@ -138,6 +147,30 @@ const Register = () => {
             </div>
           </div>
 
+          {/* Role selection for registration */}
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+              Role
+            </label>
+            <div className="mt-1">
+              <select
+                id="role"
+                name="role"
+                required
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                value={formik.values.role}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              >
+                <option value="Team Member">Team Member</option>
+                <option value="Admin">Admin</option>
+              </select>
+              {formik.touched.role && formik.errors.role && (
+                <div className="text-red-500 text-sm mt-1">{formik.errors.role}</div>
+              )}
+            </div>
+          </div>
+
           <div>
             <button
               type="submit"
@@ -152,4 +185,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;

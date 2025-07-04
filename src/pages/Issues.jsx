@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-// import { Link } from 'react-router-dom'; // Removed as no longer needed for static UI
-// import KanbanBoard from '../components/KanbanBoard'; // Removed as we're building the layout directly
+// src/pages/Issues.jsx
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useIssues } from '../context/IssuesContext'; // Re-enabled for issue data
+import { IssuesIcon, PlusIcon } from '../components/Icons'; // Import necessary icons
+import { useProjects } from '../context/ProjectsContext'; // To get project names for filter
 
 const Issues = () => {
-  const { issues } = useIssues(); // Get issues from context
+  const { issues, loading, error, fetchIssues } = useIssues(); // Get issues from context
+  const { projects: allProjects, loading: projectsLoading } = useProjects(); // Get projects for filter options
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,7 +18,7 @@ const Issues = () => {
   const [reporterFilter, setReporterFilter] = useState('All');
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
-  const [tagsFilter, setTagsFilter] = useState('All'); // For simplicity, starting as single select
+  const [tagsFilter, setTagsFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Newest First');
 
   // Derived state for filter options (to be populated dynamically)
@@ -25,97 +28,131 @@ const Issues = () => {
   const [tagOptions, setTagOptions] = useState(['All']);
 
   useEffect(() => {
-    // Dynamically populate filter options from issues data
-    const uniqueProjects = [...new Set(issues.map(issue => issue.project).filter(Boolean))];
-    setProjectOptions(['All Projects', ...uniqueProjects]);
+    fetchIssues(); // Ensure issues are fetched when component mounts
+  }, [fetchIssues]);
 
-    const uniqueAssignees = [...new Set(issues.map(issue => issue.assignee).filter(Boolean))];
-    setAssigneeOptions(['All', ...uniqueAssignees, 'Unassigned']);
+  useEffect(() => {
+    // Dynamically populate filter options from issues and projects data
+    if (issues.length > 0) {
+      const uniqueProjectIds = [...new Set(issues.map(issue => issue.projectId).filter(Boolean))];
+      const projectNames = uniqueProjectIds.map(id => {
+        const project = allProjects.find(p => p._id === id);
+        return project ? project.title : null;
+      }).filter(Boolean);
+      setProjectOptions(['All Projects', ...projectNames]);
 
-    const uniqueReporters = [...new Set(issues.map(issue => issue.reporter).filter(Boolean))];
-    setReporterOptions(['All', ...uniqueReporters]);
+      const uniqueAssignees = [...new Set(issues.map(issue => issue.assignee?.name).filter(Boolean))]; // Assuming assignee is populated
+      setAssigneeOptions(['All', 'Unassigned', ...uniqueAssignees]);
 
-    const uniqueTags = [...new Set(issues.flatMap(issue => issue.tags || []).filter(Boolean))];
-    setTagOptions(['All', ...uniqueTags]);
+      const uniqueReporters = [...new Set(issues.map(issue => issue.reporter?.name).filter(Boolean))]; // Assuming reporter is populated
+      setReporterOptions(['All', ...uniqueReporters]);
 
-  }, [issues]);
+      const uniqueTags = [...new Set(issues.flatMap(issue => issue.tags || []).filter(Boolean))];
+      setTagOptions(['All', ...uniqueTags]);
+    }
+  }, [issues, allProjects]);
+
 
   // Filtering logic
-  const filteredIssues = issues.filter(issue => {
-    const matchesSearchTerm = searchTerm === '' ||
-      (issue.title && issue.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (issue.description && issue.description.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredIssues = useMemo(() => {
+    return issues.filter(issue => {
+      const matchesSearchTerm = searchTerm === '' ||
+        (issue.title && issue.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (issue.description && issue.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesProject = projectFilter === 'All Projects' || (issue.project === projectFilter);
+      const issueProjectName = allProjects.find(p => p._id === issue.projectId)?.title;
+      const matchesProject = projectFilter === 'All Projects' || (issueProjectName === projectFilter);
 
-    const matchesStatus = statusFilter === 'All' || (issue.status && issue.status.toLowerCase() === statusFilter.toLowerCase());
+      const matchesStatus = statusFilter === 'All' || (issue.status && issue.status.toLowerCase() === statusFilter.toLowerCase());
 
-    const matchesPriority = priorityFilter === 'All' || (issue.priority && issue.priority.toLowerCase() === priorityFilter.toLowerCase());
+      const matchesPriority = priorityFilter === 'All' || (issue.priority && issue.priority.toLowerCase() === priorityFilter.toLowerCase());
 
-    const matchesAssignee = assigneeFilter === 'All' ||
-      (assigneeFilter === 'Unassigned' && (!issue.assignee || issue.assignee === '')) ||
-      (issue.assignee === assigneeFilter);
+      const matchesAssignee = assigneeFilter === 'All' ||
+        (assigneeFilter === 'Unassigned' && (!issue.assignee || !issue.assignee.name)) ||
+        (issue.assignee?.name === assigneeFilter); // Match by assignee name
 
-    const matchesReporter = reporterFilter === 'All' || (issue.reporter === reporterFilter);
+      const matchesReporter = reporterFilter === 'All' || (issue.reporter?.name === reporterFilter);
 
-    const matchesTags = tagsFilter === 'All' || (issue.tags && issue.tags.includes(tagsFilter));
+      const matchesTags = tagsFilter === 'All' || (issue.tags && issue.tags.includes(tagsFilter));
 
-    const issueCreatedAt = issue.createdAt ? new Date(issue.createdAt) : null;
+      const issueCreatedAt = issue.createdAt ? new Date(issue.createdAt) : null;
 
-    const matchesStartDate = !startDateFilter || (issueCreatedAt && issueCreatedAt >= new Date(startDateFilter));
-    const matchesEndDate = !endDateFilter || (issueCreatedAt && issueCreatedAt <= new Date(endDateFilter));
+      const matchesStartDate = !startDateFilter || (issueCreatedAt && issueCreatedAt >= new Date(startDateFilter));
+      const matchesEndDate = !endDateFilter || (issueCreatedAt && issueCreatedAt <= new Date(endDateFilter));
 
-    // Combine all filters
-    return matchesSearchTerm && matchesProject && matchesStatus && matchesPriority &&
-           matchesAssignee && matchesReporter && matchesTags && matchesStartDate && matchesEndDate;
-  });
+      return matchesSearchTerm && matchesProject && matchesStatus && matchesPriority &&
+             matchesAssignee && matchesReporter && matchesTags && matchesStartDate && matchesEndDate;
+    });
+  }, [issues, searchTerm, projectFilter, statusFilter, priorityFilter, assigneeFilter, reporterFilter, startDateFilter, endDateFilter, tagsFilter, allProjects]);
 
   // Sorting logic
-  const sortedIssues = [...filteredIssues].sort((a, b) => {
-    if (sortBy === 'Newest First') {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    } else if (sortBy === 'Oldest First') {
-      return new Date(a.createdAt) - new Date(b.createdAt);
-    } else if (sortBy === 'Priority: High to Low') {
-      const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
-      return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
-    } else if (sortBy === 'Status') {
-      // Define a custom order for statuses if needed, otherwise alphabetical
-      const statusOrder = { 'to-do': 1, 'in-progress': 2, 'done': 3 };
-      return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0) || a.status.localeCompare(b.status);
-    }
-    return 0; // No sorting applied if sortBy is not recognized
-  });
+  const sortedIssues = useMemo(() => {
+    return [...filteredIssues].sort((a, b) => {
+      if (sortBy === 'Newest First') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (sortBy === 'Oldest First') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (sortBy === 'Priority: High to Low') {
+        const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+        return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+      } else if (sortBy === 'Status') {
+        // Define a custom order for statuses if needed, otherwise alphabetical
+        const statusOrder = { 'to-do': 1, 'in-progress': 2, 'done': 3 };
+        return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0) || a.status.localeCompare(b.status);
+      }
+      return 0; // No sorting applied if sortBy is not recognized
+    });
+  }, [filteredIssues, sortBy]);
 
-  // Format issues for Kanban board (will be based on sortedIssues)
+  // Format issues for Kanban board
   const columns = {
-    'to-do': {
-      id: 'to-do',
+    'To Do': {
+      id: 'To Do',
       title: 'To Do',
-      tasks: sortedIssues.filter(issue => issue.status === 'to-do'),
+      tasks: sortedIssues.filter(issue => issue.status === 'To Do'),
     },
-    'in-progress': {
-      id: 'in-progress',
+    'In Progress': {
+      id: 'In Progress',
       title: 'In Progress',
-      tasks: sortedIssues.filter(issue => issue.status === 'in-progress'),
+      tasks: sortedIssues.filter(issue => issue.status === 'In Progress'),
     },
-    'done': {
-      id: 'done',
+    'Done': {
+      id: 'Done',
       title: 'Done',
-      tasks: sortedIssues.filter(issue => issue.status === 'done'),
+      tasks: sortedIssues.filter(issue => issue.status === 'Done'),
     },
   };
+
+  if (loading || projectsLoading) {
+    return (
+      <div className="container mx-auto p-8 bg-[#f9fafb] min-h-screen flex justify-center items-center">
+        <p className="text-xl text-gray-700">Loading issues...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-8 bg-[#f9fafb] min-h-screen flex justify-center items-center text-red-600">
+        <p className="text-xl">Error loading issues: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-8 bg-[#f9fafb] min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Issues</h1>
-        <a
-          href="/create-issue"
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+          <IssuesIcon className="mr-3 text-indigo-500" />
+          Issues
+        </h1>
+        <Link
+          to="/create-issue"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
+          <PlusIcon className="h-5 w-5 mr-2" />
           Create New Issue
-        </a>
+        </Link>
       </div>
 
       {/* Search and Filter Section */}
@@ -142,7 +179,7 @@ const Issues = () => {
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
             >
-              <option value="All">Project</option>
+              <option value="All Projects">Project</option>
               {projectOptions.slice(1).map(option => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -159,10 +196,10 @@ const Issues = () => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="All">All</option>
-              <option value="to-do">To Do</option>
-              <option value="in-progress">In Progress</option>
-              <option value="done">Done</option>
+              <option value="All">All Statuses</option>
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Done">Done</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -176,10 +213,10 @@ const Issues = () => {
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
             >
-              <option value="All">All</option>
-              <option>High</option>
-              <option>Medium</option>
-              <option>Low</option>
+              <option value="All">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -226,29 +263,23 @@ const Issues = () => {
             <div className="flex space-x-2">
               <div className="relative w-1/2">
                 <input
-                  type="text"
+                  type="date" // Changed to type="date" for native date picker
                   id="startDate"
-                  className="block w-full pl-3 pr-10 py-2 border border-gray-200 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-3 pr-3 py-2 border border-gray-200 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="dd-mm-yyyy"
                   value={startDateFilter}
                   onChange={(e) => setStartDateFilter(e.target.value)}
                 />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
               </div>
               <div className="relative w-1/2">
                 <input
-                  type="text"
+                  type="date" // Changed to type="date"
                   id="endDate"
-                  className="block w-full pl-3 pr-10 py-2 border border-gray-200 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-3 pr-3 py-2 border border-gray-200 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="dd-mm-yyyy"
                   value={endDateFilter}
                   onChange={(e) => setEndDateFilter(e.target.value)}
                 />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
               </div>
             </div>
           </div>
@@ -278,9 +309,9 @@ const Issues = () => {
               onChange={(e) => setSortBy(e.target.value)}
             >
               <option value="Newest First">Newest First</option>
-              <option>Oldest First</option>
-              <option>Priority: High to Low</option>
-              <option>Status</option>
+              <option value="Oldest First">Oldest First</option>
+              <option value="Priority: High to Low">Priority: High to Low</option>
+              <option value="Status">Status</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -292,41 +323,31 @@ const Issues = () => {
 
       {/* Kanban Board Columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* To Do Column */}
-        <div className="flex flex-col bg-gray-100 rounded-xl shadow-sm p-4 h-full border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">To Do</h2>
-          <div className="flex-1 space-y-4">
-            {columns['to-do'].tasks.map(task => (
-              <div key={task.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
-                <p className="font-medium text-gray-800">{task.title}</p>
-              </div>
-            ))}
+        {Object.keys(columns).map(columnKey => (
+          <div key={columnKey} className="flex flex-col bg-gray-100 rounded-xl shadow-sm p-4 h-full border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">{columns[columnKey].title} ({columns[columnKey].tasks.length})</h2>
+            <div className="flex-1 space-y-4">
+              {columns[columnKey].tasks.length > 0 ? (
+                columns[columnKey].tasks.map(task => (
+                  <Link to={`/issues/${task._id}`} key={task._id} className="block bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                    <h4 className="font-medium text-gray-800">{task.title}</h4>
+                    <p className="text-sm text-gray-600">Project: {allProjects.find(p => p._id === task.projectId)?.title || 'N/A'}</p>
+                    <p className="text-sm text-gray-600">Assignee: {task.assignee?.name || 'Unassigned'}</p>
+                    <span className={`mt-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      task.priority === 'High' ? 'bg-red-100 text-red-800' :
+                      task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {task.priority}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No issues in this column.</p>
+              )}
+            </div>
           </div>
-        </div>
-
-        {/* In Progress Column */}
-        <div className="flex flex-col bg-gray-100 rounded-xl shadow-sm p-4 h-full border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">In Progress</h2>
-          <div className="flex-1 space-y-4">
-            {columns['in-progress'].tasks.map(task => (
-              <div key={task.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
-                <p className="font-medium text-gray-800">{task.title}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Done Column */}
-        <div className="flex flex-col bg-gray-100 rounded-xl shadow-sm p-4 h-full border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Done</h2>
-          <div className="flex-1 space-y-4">
-            {columns['done'].tasks.map(task => (
-              <div key={task.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
-                <p className="font-medium text-gray-800">{task.title}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
