@@ -1,16 +1,15 @@
-// src/pages/CreateProjectPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+// import { toast } from 'react-toastify'; // No longer needed here, toast is in context
 import { useProjects } from '../context/ProjectsContext'; // Import useProjects
-import { CreateProjectIcon } from '../components/Icons'; // Import icon
 
 const CreateProjectPage = () => {
   const navigate = useNavigate();
   const { addProject } = useProjects(); // Use addProject from context
 
-  // Mock data for existing users (for frontend UI only, not sent to backend on project creation)
+  // Mock data for existing users
   const mockUsers = [
     { id: 'u1', name: 'Alice Smith', email: 'alice@example.com' },
     { id: 'u2', name: 'Bob Johnson', email: 'bob@example.com' },
@@ -19,7 +18,7 @@ const CreateProjectPage = () => {
     { id: 'u5', name: 'Eve Davis', email: 'eve@example.com' },
   ];
 
-  // State for managing project members (frontend UI only for now)
+  // State for managing project members
   const [projectMembers, setProjectMembers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(''); // ID of the user selected from dropdown
   const [selectedRole, setSelectedRole] = useState('Developer'); // Default role
@@ -43,23 +42,18 @@ const CreateProjectPage = () => {
         .required('End date is required'),
       status: Yup.string().required('Status is required'),
     }),
-    onSubmit: async (values) => {
-      // Data to send to the backend for project creation
-      const projectDataToSend = {
-        title: values.name, // Backend expects 'title'
+    onSubmit: (values) => {
+      // Ensure all required fields are passed, including an initialized members array
+      const newProjectData = {
+        name: values.name,
         description: values.description,
         startDate: values.startDate,
         endDate: values.endDate,
         status: values.status,
-        // teamMembers are NOT sent here, as backend's POST /projects handles initial creator
-        // and a separate endpoint would be used for adding more members later.
+        members: projectMembers || [], // Ensure members is always an array
       };
-
-      const result = await addProject(projectDataToSend); // Call addProject from context
-      if (result.success) {
-        navigate('/projects'); // Navigate to projects list on success
-      }
-      // Toast messages are handled by ProjectsContext
+      addProject(newProjectData);
+      navigate('/projects');
     },
   });
 
@@ -83,9 +77,6 @@ const CreateProjectPage = () => {
   };
 
   const handleRemoveMember = (memberId) => {
-    const updatedMembers = projectMembers.filter(member => member.id !== memberId);
-    setProjectMembers(updatedMembers);
-    // You might want to get the name of the removed member for a toast message here
     // toast.info(`${removedMember.name} removed from the project.`); // Toast now handled by context if we were to send this there
   };
 
@@ -93,10 +84,7 @@ const CreateProjectPage = () => {
     <div className="h-full w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-8 flex items-center">
-            <CreateProjectIcon className="mr-3 text-indigo-500" /> {/* Icon added */}
-            Create New Project
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-8">Create New Project</h1>
           <form onSubmit={formik.handleSubmit} className="space-y-8">
             {/* Project Details Section */}
             <div className="space-y-6">
@@ -196,9 +184,9 @@ const CreateProjectPage = () => {
               </div>
             </div>
 
-            {/* Team Members Section (UI only for now, backend integration is a separate step) */}
+            {/* Team Members Section */}
             <div className="space-y-6 pt-8 border-t border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Team Members (Frontend Preview)</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Team Members</h2>
 
               {/* Add Member Form */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -303,4 +291,4 @@ const CreateProjectPage = () => {
   );
 };
 
-export default CreateProjectPage;
+export default CreateProjectPage; 

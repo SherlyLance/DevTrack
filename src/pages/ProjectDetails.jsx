@@ -1,8 +1,25 @@
+<<<<<<< HEAD
+// src/pages/ProjectDetails.jsx
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+=======
 // src/pages/ProjectDetails.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
+<<<<<<< HEAD
+import { useProjects } from '../context/ProjectsContext'; // To fetch project details
+import { useIssues } from '../context/IssuesContext'; // To fetch issues related to the project
+import {
+  SettingsIcon, // Used for Edit Project (Cog6ToothIcon equivalent)
+  TrashIcon,
+  DashboardIcon, // Used for Back to Projects (ArrowUturnLeftIcon equivalent in spirit)
+  PlusIcon,
+  ReportsIcon // Used for Refresh (ArrowPathIcon equivalent in spirit)
+} from '../components/Icons'; // Import necessary icons
+=======
 import { useProjects } from '../context/ProjectsContext'; // To fetch project details
 import { useIssues } from '../context/IssuesContext'; // To fetch issues related to the project
 import { useAuth } from '../context/AuthContext'; // To get current user for comments
@@ -13,16 +30,24 @@ import {
   PlusIcon,
   ReportsIcon // Used for Refresh (ArrowPathIcon equivalent in spirit)
 } from '../components/Icons'; // Import necessary icons
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const ProjectDetails = () => {
+<<<<<<< HEAD
+  const { id } = useParams(); // Get project ID from URL
+  const navigate = useNavigate();
+  const { projects, loading: projectsLoading, error: projectsError } = useProjects();
+  const { issues, loading: issuesLoading, error: issuesError } = useIssues(); // Assuming IssuesContext is available
+=======
   const { id } = useParams(); // Get project ID from URL
   const navigate = useNavigate();
   const { user: currentUser } = useAuth(); // Get current authenticated user
   const { projects, loading: projectsLoading, error: projectsError } = useProjects();
   // Assuming updateIssue is available from IssuesContext
   const { issues, loading: issuesLoading, error: issuesError, updateIssue, fetchIssues } = useIssues();
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
 
   const [project, setProject] = useState(null);
   const [projectIssues, setProjectIssues] = useState([]);
@@ -43,6 +68,44 @@ const ProjectDetails = () => {
     }
   }, [issues, project]);
 
+<<<<<<< HEAD
+
+  // Handle loading and error states
+  if (projectsLoading || issuesLoading) {
+    return (
+      <div className="container mx-auto px-6 py-8 bg-[#f9fafb] flex justify-center items-center h-full">
+        <p className="text-xl text-gray-700">Loading project details...</p>
+      </div>
+    );
+  }
+
+  if (projectsError || issuesError) {
+    return (
+      <div className="container mx-auto px-6 py-8 bg-[#f9fafb] flex justify-center items-center h-full text-red-600">
+        <p className="text-xl">Error loading project: {projectsError || issuesError}</p>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="container mx-auto px-6 py-8 bg-[#f9fafb] flex justify-center items-center h-full">
+        <p className="text-xl text-gray-700">Project not found.</p>
+      </div>
+    );
+  }
+
+  // Aggregate data from fetched project and its issues
+  const totalIssues = projectIssues.length;
+  const bugs = projectIssues.filter(issue => issue.type === 'Bug').length;
+  const features = projectIssues.filter(issue => issue.type === 'Feature').length;
+  const tasks = projectIssues.filter(issue => issue.type === 'Task').length;
+
+  const todoIssues = projectIssues.filter(issue => issue.status === 'To Do').length;
+  const inProgressIssues = projectIssues.filter(issue => issue.status === 'In Progress').length;
+  const doneIssues = projectIssues.filter(issue => issue.status === 'Done').length;
+
+=======
 
   // Handle loading and error states
   if (projectsLoading || issuesLoading) {
@@ -79,6 +142,7 @@ const ProjectDetails = () => {
   const inProgressIssuesCount = projectIssues.filter(issue => issue.status === 'In Progress').length;
   const doneIssuesCount = projectIssues.filter(issue => issue.status === 'Done').length;
 
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
   const ticketTypeData = {
     labels: ['Bugs', 'Features', 'Tasks'],
     datasets: [
@@ -122,6 +186,16 @@ const ProjectDetails = () => {
   };
 
   const handleDeleteProject = () => {
+<<<<<<< HEAD
+    // This would typically be a function from ProjectsContext
+    if (window.confirm(`Are you sure you want to delete "${project.title}"? This action cannot be undone.`)) {
+      console.log(`Simulating deletion of project ${project._id}`);
+      // Call a deleteProject function from ProjectsContext here
+      // e.g., deleteProject(project._id);
+      // Then navigate back to projects list on success
+      navigate('/projects');
+      alert('Project deletion simulated. Backend integration required.'); // Use a custom modal instead of alert in real app
+=======
     // This would typically be a function from ProjectsContext
     if (window.confirm(`Are you sure you want to delete "${project.title}"? This action cannot be undone.`)) {
       console.log(`Simulating deletion of project ${project._id}`);
@@ -130,9 +204,22 @@ const ProjectDetails = () => {
       // Then navigate back to projects list on success
       navigate('/projects');
       alert('Project deletion simulated. Backend integration required for actual deletion.'); // Use a custom modal instead of alert in real app
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
     }
   };
 
+<<<<<<< HEAD
+  const handleAddComment = () => {
+    if (currentComment.trim()) {
+      console.log(`Adding comment "${currentComment}" to project ${project._id}`);
+      // This would involve an API call to add a comment to the project or an issue
+      // For now, it's just a console log.
+      setCurrentComment(''); // Clear input
+      alert('Comment addition simulated. Backend integration required.'); // Use a custom modal instead of alert in real app
+    }
+  };
+
+=======
   const handleAddComment = async () => {
     if (currentComment.trim() && currentUser && project) {
       // For simplicity, let's assume comments are added to the first issue for now, or a general project comment system
@@ -174,6 +261,7 @@ const ProjectDetails = () => {
   };
 
 
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
   return (
     <div className="container mx-auto px-6 py-8 bg-[#f9fafb]">
       <div className="flex justify-between items-center mb-6">
@@ -312,8 +400,34 @@ const ProjectDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* To Do Column */}
           <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+<<<<<<< HEAD
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">To Do ({todoIssues})</h3>
+=======
             <h3 className="text-lg font-semibold text-gray-800 mb-4">To Do ({todoIssuesCount})</h3>
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
             <div className="space-y-4">
+<<<<<<< HEAD
+              {projectIssues.filter(issue => issue.status === 'To Do').length > 0 ? (
+                projectIssues.filter(issue => issue.status === 'To Do').map(issue => (
+                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <h4 className="text-md font-semibold text-gray-900 mb-1">{issue.title}</h4>
+                    <p className="text-sm text-gray-600">Type: {issue.type}</p>
+                    <p className="text-sm text-gray-600">Assignee: {issue.assignee?.name || 'Unassigned'}</p> {/* Use assignee.name */}
+                    <span className={`mt-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      issue.priority === 'High'
+                        ? 'bg-red-100 text-red-800'
+                        : issue.priority === 'Medium'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {issue.priority}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No 'To Do' issues.</p>
+              )}
+=======
               {projectIssues.filter(issue => issue.status === 'To Do').length > 0 ? (
                 projectIssues.filter(issue => issue.status === 'To Do').map(issue => (
                   <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
@@ -334,13 +448,40 @@ const ProjectDetails = () => {
               ) : (
                 <p className="text-gray-500 text-sm">No 'To Do' issues.</p>
               )}
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
             </div>
           </div>
 
           {/* In Progress Column */}
           <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+<<<<<<< HEAD
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">In Progress ({inProgressIssues})</h3>
+=======
             <h3 className="text-lg font-semibold text-gray-800 mb-4">In Progress ({inProgressIssuesCount})</h3>
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
             <div className="space-y-4">
+<<<<<<< HEAD
+              {projectIssues.filter(issue => issue.status === 'In Progress').length > 0 ? (
+                projectIssues.filter(issue => issue.status === 'In Progress').map(issue => (
+                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <h4 className="text-md font-semibold text-gray-900 mb-1">{issue.title}</h4>
+                    <p className="text-sm text-gray-600">Type: {issue.type}</p>
+                    <p className="text-sm text-gray-600">Assignee: {issue.assignee?.name || 'Unassigned'}</p>
+                    <span className={`mt-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      issue.priority === 'High'
+                        ? 'bg-red-100 text-red-800'
+                        : issue.priority === 'Medium'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {issue.priority}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No 'In Progress' issues.</p>
+              )}
+=======
               {projectIssues.filter(issue => issue.status === 'In Progress').length > 0 ? (
                 projectIssues.filter(issue => issue.status === 'In Progress').map(issue => (
                   <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
@@ -361,13 +502,40 @@ const ProjectDetails = () => {
               ) : (
                 <p className="text-gray-500 text-sm">No 'In Progress' issues.</p>
               )}
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
             </div>
           </div>
 
           {/* Done Column */}
           <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+<<<<<<< HEAD
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Done ({doneIssues})</h3>
+=======
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Done ({doneIssuesCount})</h3>
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
             <div className="space-y-4">
+<<<<<<< HEAD
+              {projectIssues.filter(issue => issue.status === 'Done').length > 0 ? (
+                projectIssues.filter(issue => issue.status === 'Done').map(issue => (
+                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <h4 className="text-md font-semibold text-gray-900 mb-1">{issue.title}</h4>
+                    <p className="text-sm text-gray-600">Type: {issue.type}</p>
+                    <p className="text-sm text-gray-600">Assignee: {issue.assignee?.name || 'Unassigned'}</p>
+                    <span className={`mt-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      issue.priority === 'High'
+                        ? 'bg-red-100 text-red-800'
+                        : issue.priority === 'Medium'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {issue.priority}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No 'Done' issues.</p>
+              )}
+=======
               {projectIssues.filter(issue => issue.status === 'Done').length > 0 ? (
                 projectIssues.filter(issue => issue.status === 'Done').map(issue => (
                   <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
@@ -388,6 +556,7 @@ const ProjectDetails = () => {
               ) : (
                 <p className="text-gray-500 text-sm">No 'Done' issues.</p>
               )}
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
             </div>
           </div>
         </div>
@@ -410,10 +579,24 @@ const ProjectDetails = () => {
         </ul>
       </div>
 
-      {/* Comment Section */}
+      {/* Comment Section (Simplified) */}
       <div className="bg-white shadow rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Comments</h2>
         <div className="space-y-4 mb-6">
+<<<<<<< HEAD
+          {/* This section needs to be updated to pull comments from issues or a dedicated project comment system */}
+          {/* For now, it's a simplified display */}
+          {projectIssues.flatMap(issue => issue.comments || []).length > 0 ? (
+            projectIssues.flatMap(issue => issue.comments || []).map((comment, index) => (
+              <div key={`${issue._id}-${index}`} className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                <p className="text-sm font-medium text-gray-900">{comment.author?.name || 'Unknown'} <span className="text-gray-500 text-xs ml-2">{new Date(comment.timestamp).toLocaleString()}</span></p>
+                <p className="text-sm text-gray-800 mt-1">{comment.text}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No comments yet.</p>
+          )}
+=======
           {projectIssues.some(issue => (issue.comments && issue.comments.length > 0)) ? (
             projectIssues.map(issue => (
               (issue.comments || []).map((comment, commentIndex) => (
@@ -426,6 +609,7 @@ const ProjectDetails = () => {
           ) : (
             <p className="text-gray-500">No comments yet.</p>
           )}
+>>>>>>> f0a7a6d42df13e01df29b606998b6e23f4dc219f
         </div>
         <div className="mt-4">
           <textarea

@@ -1,14 +1,13 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-// import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'; // Removed external icons
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  // const [error, setError] = useState(''); // Removed local error state, now handled by AuthContext toast
+  const [error, setError] = useState('');
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -46,26 +45,37 @@ const Login = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      // setError(''); // Clear local error state
+      console.log('handleSubmit called!');
+      setError('');
+
       try {
         if (isLogin) {
+          console.log('Attempting login...');
           const result = await login(values.email, values.password);
+          console.log('Login result:', result);
+          
           if (result.success) {
-            navigate('/dashboard'); // Navigate on successful login
+            console.log('Login successful, navigating to dashboard...');
+            navigate('/dashboard');
+          } else {
+            setError(result.error || 'Login failed');
           }
-          // Error handling is now done via toast in AuthContext
         } else {
+          console.log('Attempting registration...');
           const result = await register(values);
+          console.log('Registration result:', result);
+          
           if (result.success) {
-            formik.setValues({ ...values, password: '', confirmPassword: '' }); // Clear passwords
-            setIsLogin(true); // Switch to login mode after successful registration
+            console.log('Registration successful, switching to login...');
+            formik.setValues({ ...values, password: '', confirmPassword: '' });
+            setIsLogin(true);
+          } else {
+            setError(result.error || 'Registration failed');
           }
-          // Error handling is now done via toast in AuthContext
         }
       } catch (err) {
-        // This catch block is mostly for unexpected errors not caught by the context
-        console.error('Auth submission error:', err);
-        // toast.error('An unexpected error occurred. Please try again.'); // Toast already handled by context
+        console.error('Auth error:', err);
+        setError('An error occurred. Please try again.');
       }
     },
   });
@@ -73,7 +83,7 @@ const Login = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     formik.resetForm();
-    // setError(''); // Clear local error state
+    setError('');
   };
 
   return (
@@ -152,9 +162,13 @@ const Login = () => {
               ) : null}
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-400"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
               >
-                {showPassword ? '🙈' : '👁️'} {/* Replaced icons with emojis */}
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <EyeIcon className="h-5 w-5 text-gray-400" />
+                )}
               </span>
             </div>
             {!isLogin && (
@@ -176,9 +190,13 @@ const Login = () => {
                 ) : null}
                  <span
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-400"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                 >
-                  {showPassword ? '🙈' : '👁️'} {/* Replaced icons with emojis */}
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                  )}
                 </span>
               </div>
             )}
@@ -204,14 +222,12 @@ const Login = () => {
             )}
           </div>
 
-          {/* Removed local error display, relying on toast */}
-          {/* {error && (
+          {error && (
             <div className="text-red-500 text-sm text-center">
               {error}
             </div>
-          )} */}
+          )}
 
-          {/* Formik errors for email and password are still useful for immediate feedback */}
           {formik.errors.email && formik.touched.email && (
             <div className="text-red-500 text-sm text-center">{formik.errors.email}</div>
           )}

@@ -1,9 +1,5 @@
-// src/context/ProjectsContext.jsx
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
-import { API_URL } from '../config/api';
-import { useAuth } from './AuthContext'; // Import useAuth to get the token
 
 const ProjectsContext = createContext(null);
 
@@ -12,77 +8,41 @@ export const useProjects = () => {
 };
 
 export const ProjectsProvider = ({ children }) => {
-  const { authToken, isAuthenticated, loading: authLoading } = useAuth(); // Get token and auth status
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [projects, setProjects] = useState([
+    { id: 1, title: 'DevTrack Backend', description: 'Backend API for the bug tracker', status: 'In Progress', members: ['Alice', 'Bob', 'Charlie'], createdAt: '2023-01-15', totalIssues: 50, bugs: 10, features: 20, tasks: 20, todo: 15, inProgress: 20, done: 15 },
+    { id: 2, title: 'DevTrack Frontend', description: 'Frontend UI for the bug tracker', status: 'To Do', members: ['Charlie', 'David', 'Alice'], createdAt: '2023-02-01', totalIssues: 40, bugs: 5, features: 15, tasks: 20, todo: 10, inProgress: 15, done: 15 },
+    { id: 3, title: 'Mobile App Integration', description: 'Integrate with mobile application', status: 'Done', members: ['Eve', 'Bob'], createdAt: '2023-03-10', totalIssues: 30, bugs: 2, features: 10, tasks: 18, todo: 0, inProgress: 0, done: 30 },
+    { id: 4, title: 'Database Optimization', description: 'Optimize database queries for performance', status: 'In Progress', members: ['Alice'], createdAt: '2023-04-05', totalIssues: 25, bugs: 3, features: 10, tasks: 12, todo: 5, inProgress: 10, done: 10 },
+    { id: 5, title: 'User Authentication Module', description: 'Develop and integrate user authentication', status: 'To Do', members: ['David'], createdAt: '2023-04-20', totalIssues: 35, bugs: 8, features: 15, tasks: 12, todo: 15, inProgress: 10, done: 10 },
+  ]);
 
-  // Function to fetch projects from the backend
-  const fetchProjects = useCallback(async () => {
-    if (!isAuthenticated || authLoading) {
-      setLoading(false); // Ensure loading is false if not authenticated
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get(`${API_URL}/projects`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-      setProjects(response.data);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch projects';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error fetching projects:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [authToken, isAuthenticated, authLoading]); // Re-run if token or auth status changes
-
-  // useEffect to call fetchProjects when component mounts or auth state changes
-  useEffect(() => {
-    if (!authLoading) { // Only attempt to fetch if auth state has been determined
-      fetchProjects();
-    }
-  }, [fetchProjects, authLoading]);
-
-  // Function to add a new project to the backend
-  const addProject = async (projectData) => {
-    setLoading(true); // Set loading while creating project
-    setError(null);
-    try {
-      const response = await axios.post(`${API_URL}/projects`, projectData, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const newProject = response.data;
-      setProjects((prevProjects) => [...prevProjects, newProject]);
-      toast.success(`Project '${newProject.title}' created successfully!`);
-      return { success: true, project: newProject };
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to create project';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error creating project:', err);
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false); // Reset loading after creation attempt
-    }
+  const addProject = (newProject) => {
+    const id = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+    const projectToStore = {
+      id,
+      title: newProject.name,
+      description: newProject.description,
+      startDate: newProject.startDate,
+      endDate: newProject.endDate,
+      status: newProject.status,
+      members: newProject.members,
+      createdAt: new Date().toISOString().slice(0, 10),
+      totalIssues: 0,
+      bugs: 0,
+      features: 0,
+      tasks: 0,
+      todo: 0,
+      inProgress: 0,
+      done: 0,
+    };
+    setProjects((prevProjects) => [...prevProjects, projectToStore]);
+    toast.success(`Project '${projectToStore.title}' created successfully!`);
   };
 
   const value = {
     projects,
-    loading, // Expose loading state
-    error,   // Expose error state
-    fetchProjects, // Expose fetch function for manual refresh if needed
     addProject,
   };
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;
-};
+}; 

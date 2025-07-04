@@ -19,7 +19,8 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
           // Attempt to fetch user data using the token to verify its validity
-          const response = await axios.get(`${API_URL}/auth/me`, {
+          // Corrected path: Removed '/auth' as it should be part of API_URL or handled by backend routing
+          const response = await axios.get(`${API_URL}/me`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -46,7 +47,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, userData);
+      // Corrected path: Removed '/auth'
+      const response = await axios.post(`${API_URL}/register`, userData);
       const { token, user: registeredUser } = response.data;
 
       localStorage.setItem('token', token);
@@ -66,7 +68,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+      // Corrected path: Removed '/auth'
+      const response = await axios.post(`${API_URL}/login`, { email, password });
       const { token, user: loggedInUser } = response.data;
 
       localStorage.setItem('token', token);
