@@ -1,10 +1,11 @@
 // src/pages/ProjectDetails.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { useProjects } from '../context/ProjectsContext'; // To fetch project details
 import { useIssues } from '../context/IssuesContext'; // To fetch issues related to the project
+import { useAuth } from '../context/AuthContext'; // To get current user for comments
 import {
   SettingsIcon, // Used for Edit Project (Cog6ToothIcon equivalent)
   TrashIcon,
@@ -18,8 +19,10 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 const ProjectDetails = () => {
   const { id } = useParams(); // Get project ID from URL
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth(); // Get current authenticated user
   const { projects, loading: projectsLoading, error: projectsError } = useProjects();
-  const { issues, loading: issuesLoading, error: issuesError } = useIssues(); // Assuming IssuesContext is available
+  // Assuming updateIssue is available from IssuesContext
+  const { issues, loading: issuesLoading, error: issuesError, updateIssue, fetchIssues } = useIssues();
 
   const [project, setProject] = useState(null);
   const [projectIssues, setProjectIssues] = useState([]);
@@ -52,7 +55,7 @@ const ProjectDetails = () => {
 
   if (projectsError || issuesError) {
     return (
-      <div className="container mx-auto px-6 py-8 bg-[#f9fafb] flex justify-center items-center h-full text-red-600">
+      <div className="container mx-auto px-6 py-8 bg-[#f9fafb] flex justify-center items-center text-red-600">
         <p className="text-xl">Error loading project: {projectsError || issuesError}</p>
       </div>
     );
@@ -72,9 +75,9 @@ const ProjectDetails = () => {
   const features = projectIssues.filter(issue => issue.type === 'Feature').length;
   const tasks = projectIssues.filter(issue => issue.type === 'Task').length;
 
-  const todoIssues = projectIssues.filter(issue => issue.status === 'To Do').length;
-  const inProgressIssues = projectIssues.filter(issue => issue.status === 'In Progress').length;
-  const doneIssues = projectIssues.filter(issue => issue.status === 'Done').length;
+  const todoIssuesCount = projectIssues.filter(issue => issue.status === 'To Do').length;
+  const inProgressIssuesCount = projectIssues.filter(issue => issue.status === 'In Progress').length;
+  const doneIssuesCount = projectIssues.filter(issue => issue.status === 'Done').length;
 
   const ticketTypeData = {
     labels: ['Bugs', 'Features', 'Tasks'],
@@ -102,7 +105,7 @@ const ProjectDetails = () => {
     datasets: [
       {
         label: 'Completion Status',
-        data: [todoIssues, inProgressIssues, doneIssues],
+        data: [todoIssuesCount, inProgressIssuesCount, doneIssuesCount],
         backgroundColor: [
           '#F59E0B', // Amber for To Do
           '#60A5FA', // Blue for In Progress
@@ -126,19 +129,50 @@ const ProjectDetails = () => {
       // e.g., deleteProject(project._id);
       // Then navigate back to projects list on success
       navigate('/projects');
-      alert('Project deletion simulated. Backend integration required.'); // Use a custom modal instead of alert in real app
+      alert('Project deletion simulated. Backend integration required for actual deletion.'); // Use a custom modal instead of alert in real app
     }
   };
 
-  const handleAddComment = () => {
-    if (currentComment.trim()) {
-      console.log(`Adding comment "${currentComment}" to project ${project._id}`);
-      // This would involve an API call to add a comment to the project or an issue
-      // For now, it's just a console log.
-      setCurrentComment(''); // Clear input
-      alert('Comment addition simulated. Backend integration required.'); // Use a custom modal instead of alert in real app
+  const handleAddComment = async () => {
+    if (currentComment.trim() && currentUser && project) {
+      // For simplicity, let's assume comments are added to the first issue for now, or a general project comment system
+      // A more robust solution would involve selecting an issue or having a dedicated project comment model.
+      // For now, let's simulate adding to a specific issue or if no issues, just log.
+
+      if (projectIssues.length > 0) {
+        const targetIssue = projectIssues[0]; // Example: Add to the first issue
+        const newComment = {
+          author: currentUser.id, // Use current user's ID
+          text: currentComment.trim(),
+          timestamp: new Date().toISOString()
+        };
+
+        // Create a new array of comments including the new one
+        const updatedComments = [...(targetIssue.comments || []), newComment];
+
+        try {
+          // Call updateIssue from IssuesContext to add the comment
+          // Note: The backend's /tickets/:id/comments endpoint is more suitable for this.
+          // This current frontend approach (updating the whole comments array via updateIssue)
+          // works if your PUT /tickets/:id endpoint accepts the full comments array.
+          // If you want to use the dedicated POST /tickets/:id/comments, you'd need a new function in IssuesContext.
+          await updateIssue(targetIssue._id, { comments: updatedComments });
+          setCurrentComment(''); // Clear input
+          alert('Comment added successfully!'); // Replace with toast
+          fetchIssues(); // Re-fetch issues to get the updated comments
+        } catch (error) {
+          console.error('Error adding comment:', error);
+          alert('Failed to add comment.'); // Replace with toast
+        }
+      } else {
+        alert('No issues in this project to add a comment to. (Backend integration for general project comments needed)');
+        setCurrentComment('');
+      }
+    } else {
+      alert('Please write a comment and ensure you are logged in.');
     }
   };
+
 
   return (
     <div className="container mx-auto px-6 py-8 bg-[#f9fafb]">
@@ -278,11 +312,11 @@ const ProjectDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* To Do Column */}
           <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">To Do ({todoIssues})</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">To Do ({todoIssuesCount})</h3>
             <div className="space-y-4">
               {projectIssues.filter(issue => issue.status === 'To Do').length > 0 ? (
                 projectIssues.filter(issue => issue.status === 'To Do').map(issue => (
-                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
                     <h4 className="text-md font-semibold text-gray-900 mb-1">{issue.title}</h4>
                     <p className="text-sm text-gray-600">Type: {issue.type}</p>
                     <p className="text-sm text-gray-600">Assignee: {issue.assignee?.name || 'Unassigned'}</p> {/* Use assignee.name */}
@@ -305,11 +339,11 @@ const ProjectDetails = () => {
 
           {/* In Progress Column */}
           <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">In Progress ({inProgressIssues})</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">In Progress ({inProgressIssuesCount})</h3>
             <div className="space-y-4">
               {projectIssues.filter(issue => issue.status === 'In Progress').length > 0 ? (
                 projectIssues.filter(issue => issue.status === 'In Progress').map(issue => (
-                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
                     <h4 className="text-md font-semibold text-gray-900 mb-1">{issue.title}</h4>
                     <p className="text-sm text-gray-600">Type: {issue.type}</p>
                     <p className="text-sm text-gray-600">Assignee: {issue.assignee?.name || 'Unassigned'}</p>
@@ -332,11 +366,11 @@ const ProjectDetails = () => {
 
           {/* Done Column */}
           <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Done ({doneIssues})</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Done ({doneIssuesCount})</h3>
             <div className="space-y-4">
               {projectIssues.filter(issue => issue.status === 'Done').length > 0 ? (
                 projectIssues.filter(issue => issue.status === 'Done').map(issue => (
-                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                  <Link to={`/issues/${issue._id}`} key={issue._id} className="block bg-white p-4 rounded-md shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
                     <h4 className="text-md font-semibold text-gray-900 mb-1">{issue.title}</h4>
                     <p className="text-sm text-gray-600">Type: {issue.type}</p>
                     <p className="text-sm text-gray-600">Assignee: {issue.assignee?.name || 'Unassigned'}</p>
@@ -376,18 +410,18 @@ const ProjectDetails = () => {
         </ul>
       </div>
 
-      {/* Comment Section (Simplified) */}
+      {/* Comment Section */}
       <div className="bg-white shadow rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Comments</h2>
         <div className="space-y-4 mb-6">
-          {/* This section needs to be updated to pull comments from issues or a dedicated project comment system */}
-          {/* For now, it's a simplified display */}
-          {projectIssues.flatMap(issue => issue.comments || []).length > 0 ? (
-            projectIssues.flatMap(issue => issue.comments || []).map((comment, index) => (
-              <div key={`${issue._id}-${index}`} className="bg-gray-50 p-3 rounded-md border border-gray-200">
-                <p className="text-sm font-medium text-gray-900">{comment.author?.name || 'Unknown'} <span className="text-gray-500 text-xs ml-2">{new Date(comment.timestamp).toLocaleString()}</span></p>
-                <p className="text-sm text-gray-800 mt-1">{comment.text}</p>
-              </div>
+          {projectIssues.some(issue => (issue.comments && issue.comments.length > 0)) ? (
+            projectIssues.map(issue => (
+              (issue.comments || []).map((comment, commentIndex) => (
+                <div key={`${issue._id}-${comment.timestamp}-${commentIndex}`} className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                  <p className="text-sm font-medium text-gray-900">{comment.author?.name || 'Unknown'} <span className="text-gray-500 text-xs ml-2">{new Date(comment.timestamp).toLocaleString()}</span></p>
+                  <p className="text-sm text-gray-800 mt-1">{comment.text}</p>
+                </div>
+              ))
             ))
           ) : (
             <p className="text-gray-500">No comments yet.</p>
