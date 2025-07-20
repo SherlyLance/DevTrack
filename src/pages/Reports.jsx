@@ -1,51 +1,51 @@
-// src/pages/Reports.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PieController } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { ReportsIcon } from '../components/Icons'; // Import ReportsIcon
-import { useIssues } from '../context/IssuesContext'; // Import useIssues
-import { useProjects } from '../context/ProjectsContext'; // Import useProjects to get project names
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PieController);
 
 const Reports = () => {
-  const { issues, loading: issuesLoading, error: issuesError, fetchIssues } = useIssues();
-  const { projects, loading: projectsLoading, error: projectsError } = useProjects();
-
   const [filterProject, setFilterProject] = useState('All');
   const [filterAssignee, setFilterAssignee] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
 
-  useEffect(() => {
-    fetchIssues(); // Ensure issues are fetched
-  }, [fetchIssues]);
+  // Placeholder Data for reports
+  const issues = [
+    { id: 1, status: 'Resolved', comments: 5, developer: 'John Doe', project: 'Project A' },
+    { id: 2, status: 'Unresolved', comments: 2, developer: 'Jane Smith', project: 'Project B' },
+    { id: 3, status: 'Resolved', comments: 10, developer: 'John Doe', project: 'Project A' },
+    { id: 4, status: 'Unresolved', comments: 1, developer: 'Peter Jones', project: 'Project C' },
+    { id: 5, status: 'Resolved', comments: 3, developer: 'Jane Smith', project: 'Project B' },
+    { id: 6, status: 'Resolved', comments: 7, developer: 'John Doe', project: 'Project A' },
+    { id: 7, status: 'Unresolved', comments: 4, developer: 'Jane Smith', project: 'Project A' },
+    { id: 8, status: 'Resolved', comments: 6, developer: 'Peter Jones', project: 'Project B' },
+  ];
 
   // Chart Colors (consistent with Dashboard.jsx)
   const chartColors = {
-    toDo: '#3B82F6', // Blue
-    inProgress: '#F59E0B', // Amber
-    done: '#10B981', // Emerald Green
-    bug: '#EF4444', // Red
-    feature: '#6366F1', // Indigo
-    task: '#64748B', // Slate
-    others: '#06B6D4', // Cyan
+    toDo: '#3B82F6',
+    inProgress: '#F59E0B',
+    done: '#10B981',
+    bug: '#EF4444',
+    feature: '#6366F1',
+    task: '#64748B',
+    others: '#06B6D4',
     resolved: '#10B981', // Emerald Green
     unresolved: '#EF4444', // Rose/Red
   };
 
-  // Memoize filtered issues for performance
-  const filteredIssues = useMemo(() => {
-    return issues.filter(issue => {
-      const matchesProject = filterProject === 'All' || issue.projectId === filterProject;
-      const matchesAssignee = filterAssignee === 'All' || issue.assignee?._id === filterAssignee; // Match by assignee ID
-      const matchesStatus = filterStatus === 'All' || issue.status === filterStatus;
-      return matchesProject && matchesAssignee && matchesStatus;
-    });
-  }, [issues, filterProject, filterAssignee, filterStatus]);
+  // Filtered issues based on state
+  const filteredIssues = issues.filter(issue => {
+    const matchesProject = filterProject === 'All' || issue.project === filterProject;
+    const matchesAssignee = filterAssignee === 'All' || issue.developer === filterAssignee;
+    const matchesStatus = filterStatus === 'All' || issue.status === filterStatus;
+    return matchesProject && matchesAssignee && matchesStatus;
+  });
 
   // Data for Resolved vs Unresolved Issues Chart
-  const resolvedCount = filteredIssues.filter(issue => issue.status === 'Done').length; // Assuming 'Done' means resolved
-  const unresolvedCount = filteredIssues.filter(issue => issue.status !== 'Done').length;
+  const resolvedCount = filteredIssues.filter(issue => issue.status === 'Resolved').length;
+  const unresolvedCount = filteredIssues.filter(issue => issue.status === 'Unresolved').length;
   const resolvedUnresolvedData = {
     labels: ['Resolved', 'Unresolved'],
     datasets: [
@@ -59,14 +59,12 @@ const Reports = () => {
   };
 
   // Data for Comments per Ticket (Average/Distribution - simplified for bar chart)
-  // This would require fetching comments for each ticket or having a comment count on the issue object
-  // For now, let's just create a mock for demonstration or assume 'comments' field exists
   const commentsData = {
-    labels: filteredIssues.map(issue => issue.title), // Use issue title as label
+    labels: filteredIssues.map(issue => `Issue ${issue.id}`),
     datasets: [
       {
-        label: 'Comments Count',
-        data: filteredIssues.map(issue => issue.comments ? issue.comments.length : 0), // Assuming issue.comments is an array
+        label: 'Comments',
+        data: filteredIssues.map(issue => issue.comments),
         backgroundColor: chartColors.toDo,
         borderColor: chartColors.toDo,
         borderWidth: 1,
@@ -76,9 +74,7 @@ const Reports = () => {
 
   // Data for Tickets per Developer
   const ticketsPerDeveloper = filteredIssues.reduce((acc, issue) => {
-    if (issue.assignee && issue.assignee.name) { // Ensure assignee is populated and has a name
-      acc[issue.assignee.name] = (acc[issue.assignee.name] || 0) + 1;
-    }
+    acc[issue.developer] = (acc[issue.developer] || 0) + 1;
     return acc;
   }, {});
   const ticketsPerDeveloperData = {
@@ -94,23 +90,10 @@ const Reports = () => {
     ],
   };
 
-  // Unique values for filters (from fetched data)
-  const uniqueProjects = useMemo(() => ['All', ...new Set(projects.map(p => p._id))], [projects]);
-  const uniqueProjectNames = useMemo(() => ['All', ...new Set(projects.map(p => p.title))], [projects]);
-  const uniqueAssignees = useMemo(() => {
-    const assignees = issues.map(issue => issue.assignee).filter(Boolean);
-    const uniqueIds = [...new Set(assignees.map(a => a._id))];
-    return ['All', ...uniqueIds];
-  }, [issues]);
-
-  const uniqueAssigneeNames = useMemo(() => {
-    const assignees = issues.map(issue => issue.assignee).filter(Boolean);
-    const uniqueNames = [...new Set(assignees.map(a => a.name))];
-    return ['All', ...uniqueNames];
-  }, [issues]);
-
-
-  const uniqueStatuses = useMemo(() => ['All', ...new Set(issues.map(issue => issue.status))], [issues]);
+  // Unique values for filters
+  const uniqueProjects = [...new Set(issues.map(issue => issue.project))];
+  const uniqueAssignees = [...new Set(issues.map(issue => issue.developer))];
+  const uniqueStatuses = [...new Set(issues.map(issue => issue.status))];
 
   const chartOptions = {
     maintainAspectRatio: false,
@@ -142,40 +125,17 @@ const Reports = () => {
         }
       },
     },
-    scales: { // Add scales configuration for bar charts
-      y: {
-        beginAtZero: true,
-      },
-    },
   };
 
   const handleDownloadReport = () => {
-    alert('Generating report... (Backend integration for actual report generation needed)');
+    // Placeholder for report generation logic
+    alert('Generating report... (This is a placeholder action)');
   };
-
-  if (issuesLoading || projectsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <p className="text-xl text-gray-700">Loading reports data...</p>
-      </div>
-    );
-  }
-
-  if (issuesError || projectsError) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center text-red-600">
-        <p className="text-xl">Error loading reports: {issuesError || projectsError}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-          <ReportsIcon className="mr-3 text-indigo-500" />
-          Reports & Analytics
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Reports & Analytics</h1>
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
@@ -187,10 +147,7 @@ const Reports = () => {
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
               <option value="All">All Projects</option>
-              {uniqueProjects.slice(1).map((id) => {
-                const project = projects.find(p => p._id === id);
-                return project ? <option key={id} value={id}>{project.title}</option> : null;
-              })}
+              {uniqueProjects.map(project => <option key={project}>{project}</option>)}
             </select>
             <select
               value={filterAssignee}
@@ -198,10 +155,7 @@ const Reports = () => {
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
               <option value="All">All Assignees</option>
-              {uniqueAssignees.slice(1).map((id) => {
-                const assignee = issues.find(issue => issue.assignee?._id === id)?.assignee;
-                return assignee ? <option key={id} value={id}>{assignee.name}</option> : null;
-              })}
+              {uniqueAssignees.map(assignee => <option key={assignee}>{assignee}</option>)}
             </select>
             <select
               value={filterStatus}
@@ -209,7 +163,7 @@ const Reports = () => {
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
               <option value="All">All Statuses</option>
-              {uniqueStatuses.slice(1).map(status => <option key={status}>{status}</option>)}
+              {uniqueStatuses.map(status => <option key={status}>{status}</option>)}
             </select>
           </div>
           <div className="mt-6 flex justify-end">
@@ -217,7 +171,7 @@ const Reports = () => {
               onClick={handleDownloadReport}
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
               Download Report
             </button>
           </div>
