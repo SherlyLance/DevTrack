@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { API_URL } from '../config/api';
+// Corrected import: Import the default 'config' object
+import config from '../config/api';
 
 const AuthContext = createContext();
 
@@ -19,8 +20,8 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
           // Attempt to fetch user data using the token to verify its validity
-          // Corrected path: Removed '/auth' as it should be part of API_URL or handled by backend routing
-          const response = await axios.get(`${API_URL}/me`, {
+          // CORRECTED: Use config.ENDPOINTS.AUTH.ME
+          const response = await axios.get(config.ENDPOINTS.AUTH.ME, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -47,8 +48,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Corrected path: Removed '/auth'
-      const response = await axios.post(`${API_URL}/register`, userData);
+      // CORRECTED: Use config.ENDPOINTS.AUTH.REGISTER
+      const response = await axios.post(config.ENDPOINTS.AUTH.REGISTER, userData);
       const { token, user: registeredUser } = response.data;
 
       localStorage.setItem('token', token);
@@ -68,8 +69,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // Corrected path: Removed '/auth'
-      const response = await axios.post(`${API_URL}/login`, { email, password });
+      // CORRECTED: Use config.ENDPOINTS.AUTH.LOGIN
+      const response = await axios.post(config.ENDPOINTS.AUTH.LOGIN, { email, password });
       const { token, user: loggedInUser } = response.data;
 
       localStorage.setItem('token', token);

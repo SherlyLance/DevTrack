@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { API_URL } from '../config/api';
+// Corrected import: Import the default 'config' object
+import config from '../config/api';
 import { useAuth } from './AuthContext'; // To get the auth token
 
 const IssuesContext = createContext(null);
@@ -27,7 +28,8 @@ export const IssuesProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_URL}/tickets`, { // Assuming '/tickets' is your issues endpoint
+      // CORRECTED: Use config.ENDPOINTS.TICKETS.BASE
+      const response = await axios.get(config.ENDPOINTS.TICKETS.BASE, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -55,7 +57,8 @@ export const IssuesProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`${API_URL}/tickets`, issueData, { // Assuming '/tickets' is your issues endpoint
+      // CORRECTED: Use config.ENDPOINTS.TICKETS.BASE
+      const response = await axios.post(config.ENDPOINTS.TICKETS.BASE, issueData, {
         headers: {
           Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -76,12 +79,13 @@ export const IssuesProvider = ({ children }) => {
     }
   };
 
-  // Function to update an issue (placeholder for future implementation)
+  // Function to update an issue
   const updateIssue = async (issueId, updateData) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.put(`${API_URL}/tickets/${issueId}`, updateData, {
+      // CORRECTED: Construct URL dynamically using config.ENDPOINTS.TICKETS.BASE
+      const response = await axios.put(`${config.ENDPOINTS.TICKETS.BASE}/${issueId}`, updateData, {
         headers: {
           Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -104,12 +108,13 @@ export const IssuesProvider = ({ children }) => {
     }
   };
 
-  // Function to delete an issue (placeholder for future implementation)
+  // Function to delete an issue
   const deleteIssue = async (issueId) => {
     setLoading(true);
     setError(null);
     try {
-      await axios.delete(`${API_URL}/tickets/${issueId}`, {
+      // CORRECTED: Construct URL dynamically using config.ENDPOINTS.TICKETS.BASE
+      await axios.delete(`${config.ENDPOINTS.TICKETS.BASE}/${issueId}`, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -127,7 +132,6 @@ export const IssuesProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
 
   const value = {
     issues,
